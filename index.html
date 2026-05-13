@@ -97,8 +97,33 @@ aside h2{font-size:16px;margin:10px 0}.list{display:flex;flex-direction:column;g
 const STORAGE_KEY="elmorrel_dispatch_v4";
 let db=loadDb(),weekStart=monday(new Date()),selectedJobId=null,selectedWorkerId=null,selectedVehicleId=null,selectedAssignmentId=null;
 function createEmptyDb(){return{jobs:[],workers:[],vehicles:[],assignments:[]}}
-function loadDb(){try{return JSON.parse(localStorage.getItem(STORAGE_KEY))||createEmptyDb()}catch(e){return createEmptyDb()}}
-function saveDb(){localStorage.setItem(STORAGE_KEY,JSON.stringify(db));setStatus("Uloženo")}
+async function loadDb(){
+
+  const { data } = await supabase
+    .from("app_state")
+    .select("*")
+    .eq("id",1)
+    .single();
+
+  if(data?.data){
+    db = data.data;
+  }else{
+    db = createEmptyDb();
+  }
+
+  render();
+
+}
+async function saveDb(){
+
+  await supabase
+    .from("app_state")
+    .upsert({
+      id: 1,
+      data: db
+    });}
+
+  setStatus("Uloženo do cloudu")}
 function nextId(c){return c.reduce((m,i)=>Math.max(m,Number(i.id)||0),0)+1}
 function setStatus(t){document.getElementById("status").textContent=t}
 function esc(v){return String(v??"").replace(/[&<>"']/g,s=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[s]))}
