@@ -403,11 +403,26 @@ function dropJob(ev){
   const job = jobById(jobId);
   if(!job) return;
 
-  let assignment = assignmentId ? assignmentById(assignmentId) : null;
-  if(!assignment){
-    assignment = { id: nextId(db.assignments), jobId, workerId: null, vehicleId: null, date, load: Number(job.load || 100), vehicleLoad: Number(job.vehicleLoad || 100) };
-    db.assignments.push(assignment);
-  }
+  const fromPlanner =
+  ev.dataTransfer.getData("fromPlanner") === "1";
+
+let assignment = null;
+
+if(fromPlanner && assignmentId){
+  assignment = assignmentById(assignmentId);
+}else{
+  assignment = {
+    id: nextId(db.assignments),
+    jobId,
+    workerId: null,
+    vehicleId: null,
+    date,
+    load: Number(job.load || 100),
+    vehicleLoad: Number(job.vehicleLoad || 100)
+  };
+
+  db.assignments.push(assignment);
+}
   assignment.date = date;
   if(rowKind === "worker") assignment.workerId = rowId;
   if(rowKind === "vehicle") assignment.vehicleId = rowId;
