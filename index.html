@@ -1,1 +1,864 @@
-<!DOCTYPE html><html><head><meta charset='UTF-8'><title>EL‑Morrel</title><style>body{margin:0;font-family:Arial;background:#f3f4f6;overflow:hidden}header{background:#0f6cbd;color:#fff;padding:14px 20px;font-size:24px;font-weight:bold}.layout{display:grid;grid-template-columns:320px 1fr;height:calc(100vh - 58px)}.sidebar{background:#fff;border-right:1px solid #ddd;overflow:auto;padding:12px}.boardwrap{overflow:auto;padding:12px}.board{min-width:1900px}.row,.head{display:grid;grid-template-columns:220px repeat(7,240px)}.head div{background:#e8f1fb;padding:12px;border:1px solid #d0d7e2;font-weight:bold;text-align:center}.name{background:#fff;padding:12px;border:1px solid #d0d7e2;font-weight:bold}.cell{min-height:160px;background:#fff;border:1px solid #d0d7e2;padding:6px}.cell.over{background:#dbeafe}.job{border-radius:10px;padding:8px;margin-bottom:8px;cursor:grab;box-shadow:0 2px 6px rgba(0,0,0,.12)}.job.high{background:#fecaca}.job.medium{background:#fde68a}.job.low{background:#bbf7d0}.job-title{font-weight:bold}.job-meta{font-size:12px;margin-top:4px}button{border:none;background:#0f6cbd;color:#fff;padding:10px 14px;border-radius:8px;cursor:pointer}</style></head><body><header>EL‑Morrel Dispečink</header><div class='layout'><div class='sidebar'><button onclick='resetData()'>Reset demo</button><h3>Nepřiřazené zakázky</h3><div id='unassigned'></div></div><div class='boardwrap'><div class='board'><div class='head' id='head'></div><div id='body'></div></div></div></div><script>const workers=[{id:1,name:'Petr Svoboda'},{id:2,name:'Jan Novák'},{id:3,name:'Milan Černý'},{id:4,name:'Tomáš Veselý'}];const jobs=[{id:1,title:'Montáž Praha',address:'Praha 4',contact:'Klient A',priority:'high'},{id:2,title:'Servis Brno',address:'Brno',contact:'Klient B',priority:'medium'},{id:3,title:'Revize Ostrava',address:'Ostrava',contact:'Klient C',priority:'low'}];let assignments=[];const days=['Pondělí','Úterý','Středa','Čtvrtek','Pátek','Sobota','Neděle'];function renderHead(){let html='<div>Pracovník</div>';days.forEach(d=>{html+=`<div>${d}</div>`});document.getElementById('head').innerHTML=html}function jobCard(job){return `<div class='job ${job.priority}' draggable='true' data-job='${job.id}' ondragstart='dragJob(event)'><div class='job-title'>${job.title}</div><div class='job-meta'>${job.address}</div><div class='job-meta'>${job.contact}</div></div>`}function renderUnassigned(){const used=assignments.map(a=>a.jobId);const freeJobs=jobs.filter(j=>!used.includes(j.id));const el=document.getElementById('unassigned');el.innerHTML='';freeJobs.forEach(job=>{el.innerHTML+=jobCard(job)})}function renderBoard(){const body=document.getElementById('body');body.innerHTML='';workers.forEach(worker=>{let row=`<div class='row'><div class='name'>${worker.name}</div>`;for(let d=0;d<7;d++){const jobsInCell=assignments.filter(a=>a.workerId===worker.id&&a.day===d);row+=`<div class='cell' data-worker='${worker.id}' data-day='${d}' ondragover='allowDrop(event)' ondragleave='leaveDrop(event)' ondrop='dropJob(event)'>`;jobsInCell.forEach(a=>{const job=jobs.find(j=>j.id===a.jobId);if(job){row+=jobCard(job)}});row+='</div>'}row+='</div>';body.innerHTML+=row})}function render(){renderHead();renderBoard();renderUnassigned()}function dragJob(ev){const jobEl=ev.target.closest('.job');ev.dataTransfer.setData('jobId',jobEl.dataset.job)}function allowDrop(ev){ev.preventDefault();ev.currentTarget.classList.add('over')}function leaveDrop(ev){ev.currentTarget.classList.remove('over')}function dropJob(ev){ev.preventDefault();ev.currentTarget.classList.remove('over');const jobId=Number(ev.dataTransfer.getData('jobId'));const workerId=Number(ev.currentTarget.dataset.worker);const day=Number(ev.currentTarget.dataset.day);assignments=assignments.filter(a=>a.jobId!==jobId);assignments.push({jobId,workerId,day});render()}function resetData(){assignments=[{jobId:1,workerId:1,day:0},{jobId:2,workerId:2,day:2}];render()}resetData();</script></body></html>
+<!doctype html>
+<html lang="cs">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>EL-Morrel Dispečink</title>
+<style>
+:root{
+  --blue:#0f6cbd;
+  --blue-dark:#0b5cab;
+  --bg:#f4f7fb;
+  --card:#ffffff;
+  --line:#dbe3ef;
+  --text:#152033;
+  --muted:#607086;
+  --red:#dc2626;
+  --orange:#d97706;
+  --green:#16a34a;
+  --shadow:0 8px 24px rgba(15,35,65,.10);
+}
+*{box-sizing:border-box}
+html,body{height:100%}
+body{
+  margin:0;
+  font-family:Segoe UI,Arial,sans-serif;
+  background:var(--bg);
+  color:var(--text);
+  overflow:hidden;
+}
+header{
+  height:58px;
+  background:var(--blue);
+  color:#fff;
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  padding:0 18px;
+}
+header h1{font-size:20px;margin:0}
+header .right{font-size:13px;opacity:.95}
+.toolbar{
+  height:auto;
+  min-height:50px;
+  background:#fff;
+  border-bottom:1px solid var(--line);
+  display:flex;
+  align-items:center;
+  gap:8px;
+  padding:9px 12px;
+  flex-wrap:wrap;
+}
+button{
+  border:0;
+  border-radius:8px;
+  background:var(--blue);
+  color:white;
+  padding:9px 12px;
+  font-weight:650;
+  cursor:pointer;
+}
+button:hover{background:var(--blue-dark)}
+button.secondary{background:#e8eef7;color:#152033}
+button.secondary:hover{background:#dce6f3}
+button.danger{background:var(--red)}
+input,select,textarea{
+  border:1px solid #cbd5e1;
+  border-radius:8px;
+  padding:9px;
+  font:inherit;
+  background:#fff;
+  width:100%;
+}
+.toolbar input,.toolbar select{width:auto;min-width:190px}
+.layout{
+  display:grid;
+  grid-template-columns:330px 1fr;
+  height:calc(100vh - 108px);
+  overflow:hidden;
+}
+aside{
+  background:#fff;
+  border-right:1px solid var(--line);
+  padding:12px;
+  overflow:auto;
+}
+.tabs{display:flex;gap:6px;margin-bottom:10px}
+.tab{
+  background:#eef4fb;
+  color:#24364c;
+  padding:8px 10px;
+  border-radius:8px;
+  cursor:pointer;
+  font-weight:650;
+  font-size:13px;
+}
+.tab.active{background:var(--blue);color:#fff}
+aside h2{font-size:16px;margin:10px 0}
+.list{display:flex;flex-direction:column;gap:8px}
+.board-wrap{
+  overflow:auto;
+  height:100%;
+  padding:12px;
+  touch-action:pan-x pan-y;
+  -webkit-overflow-scrolling:touch;
+}
+.board{
+  min-width:1960px;
+  width:max-content;
+  background:#fff;
+  border:1px solid var(--line);
+  border-radius:14px;
+  overflow:visible;
+  box-shadow:var(--shadow);
+}
+.head,.row{
+  display:grid;
+  grid-template-columns:240px repeat(7,240px);
+}
+.head{
+  position:sticky;
+  top:0;
+  z-index:10;
+  background:#f8fbff;
+}
+.head>div{
+  padding:12px;
+  border-right:1px solid var(--line);
+  border-bottom:1px solid var(--line);
+  font-weight:800;
+  text-align:center;
+}
+.name-cell{
+  min-height:138px;
+  background:#fff;
+  padding:12px;
+  border-right:1px solid var(--line);
+  border-bottom:1px solid var(--line);
+  font-weight:800;
+}
+.sub{
+  font-size:12px;
+  color:var(--muted);
+  font-weight:400;
+  margin-top:4px;
+  word-break:break-word;
+}
+.cell{
+  min-height:138px;
+  background:#fff;
+  padding:7px;
+  border-right:1px solid var(--line);
+  border-bottom:1px solid var(--line);
+}
+.cell.dragover{
+  background:#eaf4ff;
+  outline:3px solid #8bc5ff;
+  outline-offset:-3px;
+}
+.capacity{
+  font-size:12px;
+  color:var(--muted);
+  margin-bottom:5px;
+  display:flex;
+  justify-content:space-between;
+  gap:6px;
+}
+.over{color:#b91c1c;font-weight:800}
+.job,.mini-card{
+  border-radius:11px;
+  padding:8px 9px;
+  margin:0 0 7px;
+  background:#e7f1ff;
+  border-left:5px solid var(--blue);
+  box-shadow:0 2px 6px rgba(0,0,0,.10);
+}
+.job{cursor:grab}
+.job:active{cursor:grabbing}
+.job.high{background:#fee2e2;border-left-color:var(--red)}
+.job.medium{background:#fff4d6;border-left-color:var(--orange)}
+.job.low{background:#dcfce7;border-left-color:var(--green)}
+.job-title{font-weight:800;font-size:13px;line-height:1.2}
+.job-meta{font-size:12px;color:#40546c;margin-top:3px;line-height:1.25}
+.badges{display:flex;flex-wrap:wrap;gap:4px;margin-top:6px}
+.badge{
+  font-size:11px;
+  background:rgba(255,255,255,.75);
+  border:1px solid rgba(0,0,0,.08);
+  border-radius:99px;
+  padding:2px 6px;
+}
+.empty{
+  padding:12px;
+  color:var(--muted);
+  background:#f8fafc;
+  border:1px dashed #cbd5e1;
+  border-radius:10px;
+  font-size:13px;
+}
+.modal{
+  display:none;
+  position:fixed;
+  inset:0;
+  background:rgba(15,23,42,.58);
+  z-index:80;
+  align-items:center;
+  justify-content:center;
+  padding:18px;
+}
+.modal.open{display:flex}
+.dialog{
+  background:#fff;
+  border-radius:16px;
+  box-shadow:0 24px 80px rgba(0,0,0,.32);
+  width:min(860px,100%);
+  max-height:92vh;
+  overflow:auto;
+  padding:18px;
+}
+.dialog h2{margin:0 0 14px;font-size:20px}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.full{grid-column:1/-1}
+label{font-size:13px;font-weight:700;color:#30435a}
+.actions{display:flex;gap:8px;justify-content:flex-end;margin-top:14px;flex-wrap:wrap}
+.small{font-size:12px;color:var(--muted)}
+.hidden{display:none!important}
+@media(max-width:900px){
+  body{overflow:auto}
+  .layout{grid-template-columns:1fr;height:auto;overflow:visible}
+  aside{border-right:0;border-bottom:1px solid var(--line);max-height:330px}
+  .board-wrap{height:calc(100vh - 390px);min-height:420px}
+  .toolbar input,.toolbar select{width:100%}
+}
+</style>
+</head>
+<body>
+<header>
+  <h1>EL-Morrel Dispečink</h1>
+  <div class="right" id="status">Připraveno</div>
+</header>
+
+<div class="toolbar">
+  <button onclick="openJob()">+ Zakázka</button>
+  <button onclick="openWorker()">+ Pracovník</button>
+  <button onclick="openVehicle()">+ Vozidlo</button>
+  <button class="secondary" onclick="prevWeek()">← týden</button>
+  <button class="secondary" onclick="goToday()">dnes</button>
+  <button class="secondary" onclick="nextWeek()">týden →</button>
+  <input id="search" placeholder="Hledat zakázku, adresu, kontakt..." oninput="render()">
+  <select id="viewMode" onchange="render()">
+    <option value="workers">Pohled podle pracovníků</option>
+    <option value="vehicles">Pohled podle vozidel</option>
+  </select>
+  <button class="secondary" onclick="exportData()">Export</button>
+  <button class="secondary" onclick="document.getElementById('importFile').click()">Import</button>
+  <input id="importFile" type="file" accept="application/json" class="hidden" onchange="importData(event)">
+</div>
+
+<div class="layout">
+  <aside>
+    <div class="tabs">
+      <div class="tab active" id="tabJobs" onclick="switchTab('jobs')">Zakázky</div>
+      <div class="tab" id="tabPeople" onclick="switchTab('people')">Lidé</div>
+      <div class="tab" id="tabCars" onclick="switchTab('cars')">Vozidla</div>
+    </div>
+
+    <section id="sideJobs">
+      <h2>Nepřiřazené zakázky</h2>
+      <div id="unassigned" class="list"></div>
+    </section>
+
+    <section id="sidePeople" class="hidden">
+      <h2>Pracovníci</h2>
+      <div id="peopleList" class="list"></div>
+    </section>
+
+    <section id="sideCars" class="hidden">
+      <h2>Vozidla</h2>
+      <div id="carsList" class="list"></div>
+    </section>
+  </aside>
+
+  <main class="board-wrap" id="boardWrap">
+    <div class="board">
+      <div id="head" class="head"></div>
+      <div id="body"></div>
+    </div>
+  </main>
+</div>
+
+<div id="jobModal" class="modal">
+  <div class="dialog">
+    <h2 id="jobModalTitle">Zakázka</h2>
+    <div class="grid">
+      <label>Název zakázky<input id="j_title"></label>
+      <label>Priorita
+        <select id="j_priority">
+          <option>Vysoká</option>
+          <option>Střední</option>
+          <option>Nízká</option>
+        </select>
+      </label>
+      <label class="full">Adresa<input id="j_address"></label>
+      <label>Kontakt<input id="j_contact"></label>
+      <label>Telefon<input id="j_phone"></label>
+      <label>Stav<input id="j_state" placeholder="Plánováno"></label>
+      <label>Vytížení pracovníka %<input id="j_load" type="number" min="0" max="200" step="25" value="100"></label>
+      <label>Vytížení vozidla %<input id="j_vehicle_load" type="number" min="0" max="200" step="25" value="100"></label>
+      <label>Čas od<input id="j_from" type="time"></label>
+      <label>Čas do<input id="j_to" type="time"></label>
+      <label class="full">Poznámka<textarea id="j_note" rows="4"></textarea></label>
+    </div>
+    <div class="actions">
+      <button class="secondary" onclick="closeModal('jobModal')">Zavřít</button>
+      <button class="danger" id="deleteJobBtn" onclick="deleteJob()">Smazat</button>
+      <button onclick="saveJob()">Uložit</button>
+    </div>
+  </div>
+</div>
+
+<div id="workerModal" class="modal">
+  <div class="dialog">
+    <h2 id="workerModalTitle">Pracovník</h2>
+    <div class="grid">
+      <label>Jméno<input id="w_title"></label>
+      <label>Email<input id="w_email"></label>
+      <label>Telefon<input id="w_phone"></label>
+      <label>Kapacita na den %<input id="w_capacity" type="number" min="0" max="300" value="100"></label>
+    </div>
+    <div class="actions">
+      <button class="secondary" onclick="closeModal('workerModal')">Zavřít</button>
+      <button class="danger" id="deleteWorkerBtn" onclick="deleteWorker()">Smazat</button>
+      <button onclick="saveWorker()">Uložit</button>
+    </div>
+  </div>
+</div>
+
+<div id="vehicleModal" class="modal">
+  <div class="dialog">
+    <h2 id="vehicleModalTitle">Vozidlo</h2>
+    <div class="grid">
+      <label>Název / označení<input id="v_title" placeholder="Dodávka 1"></label>
+      <label>SPZ<input id="v_spz"></label>
+      <label>Typ<input id="v_type" placeholder="Dodávka / osobní / nákladní"></label>
+      <label>Kapacita %<input id="v_capacity" type="number" min="0" max="300" value="100"></label>
+      <label class="full">Poznámka<textarea id="v_note" rows="3"></textarea></label>
+    </div>
+    <div class="actions">
+      <button class="secondary" onclick="closeModal('vehicleModal')">Zavřít</button>
+      <button class="danger" id="deleteVehicleBtn" onclick="deleteVehicle()">Smazat</button>
+      <button onclick="saveVehicle()">Uložit</button>
+    </div>
+  </div>
+</div>
+
+<div id="assignModal" class="modal">
+  <div class="dialog">
+    <h2>Přiřazení zakázky</h2>
+    <p class="small">Zakázku můžeš přiřadit pracovníkovi i vozidlu. Při přetažení na člověka se zachová dříve vybrané vozidlo a opačně.</p>
+    <div class="grid">
+      <label>Zakázka<input id="a_job_title" disabled></label>
+      <label>Datum<input id="a_date" type="date"></label>
+      <label>Pracovník<select id="a_worker"></select></label>
+      <label>Vozidlo<select id="a_vehicle"></select></label>
+      <label>Vytížení pracovníka %<input id="a_load" type="number" min="0" max="200" step="25"></label>
+      <label>Vytížení vozidla %<input id="a_vehicle_load" type="number" min="0" max="200" step="25"></label>
+    </div>
+    <div class="actions">
+      <button class="secondary" onclick="closeModal('assignModal')">Zavřít</button>
+      <button class="danger" onclick="unassignCurrent()">Odebrat z plánu</button>
+      <button onclick="saveAssignmentFromModal()">Uložit přiřazení</button>
+    </div>
+  </div>
+</div>
+
+<script>
+const STORAGE_KEY = "elmorrel_dispatch_v1";
+
+let db = loadDb();
+let weekStart = monday(new Date());
+let activeTab = "jobs";
+let selectedJobId = null;
+let selectedWorkerId = null;
+let selectedVehicleId = null;
+let selectedAssignmentId = null;
+
+function createEmptyDb(){
+  return { jobs: [], workers: [], vehicles: [], assignments: [] };
+}
+function loadDb(){
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    return raw ? JSON.parse(raw) : createEmptyDb();
+  } catch(e){
+    return createEmptyDb();
+  }
+}
+function saveDb(){
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(db));
+  setStatus("Uloženo");
+}
+function nextId(collection){
+  const max = collection.reduce((m,item)=>Math.max(m, Number(item.id)||0),0);
+  return max + 1;
+}
+function setStatus(text){
+  document.getElementById("status").textContent = text;
+}
+function esc(v){
+  return String(v ?? "").replace(/[&<>"']/g, s => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[s]));
+}
+function monday(d){
+  const date = new Date(d);
+  const day = date.getDay() || 7;
+  date.setDate(date.getDate() - day + 1);
+  date.setHours(0,0,0,0);
+  return date;
+}
+function addDays(d,n){
+  const x = new Date(d);
+  x.setDate(x.getDate()+n);
+  return x;
+}
+function iso(d){
+  const x = new Date(d);
+  return `${x.getFullYear()}-${String(x.getMonth()+1).padStart(2,"0")}-${String(x.getDate()).padStart(2,"0")}`;
+}
+function czDate(d){
+  return d.toLocaleDateString("cs-CZ",{weekday:"short", day:"numeric", month:"numeric"});
+}
+function priorityClass(p){
+  p = String(p || "").toLowerCase();
+  if(p.includes("vys") || p.includes("high")) return "high";
+  if(p.includes("níz") || p.includes("niz") || p.includes("low")) return "low";
+  return "medium";
+}
+function matchesSearch(job){
+  const q = document.getElementById("search").value.trim().toLowerCase();
+  if(!q) return true;
+  return [
+    job.title, job.address, job.contact, job.phone, job.note, job.state
+  ].join(" ").toLowerCase().includes(q);
+}
+function openModal(id){ document.getElementById(id).classList.add("open"); }
+function closeModal(id){ document.getElementById(id).classList.remove("open"); }
+
+function switchTab(tab){
+  activeTab = tab;
+  document.getElementById("sideJobs").classList.toggle("hidden", tab !== "jobs");
+  document.getElementById("sidePeople").classList.toggle("hidden", tab !== "people");
+  document.getElementById("sideCars").classList.toggle("hidden", tab !== "cars");
+  document.getElementById("tabJobs").classList.toggle("active", tab === "jobs");
+  document.getElementById("tabPeople").classList.toggle("active", tab === "people");
+  document.getElementById("tabCars").classList.toggle("active", tab === "cars");
+}
+function prevWeek(){ weekStart = addDays(weekStart,-7); render(); }
+function nextWeek(){ weekStart = addDays(weekStart,7); render(); }
+function goToday(){ weekStart = monday(new Date()); render(); }
+
+function rows(){
+  const mode = document.getElementById("viewMode").value;
+  if(mode === "vehicles"){
+    return db.vehicles.map(v => ({
+      kind:"vehicle",
+      id:v.id,
+      title:v.title,
+      sub:[v.spz, v.type].filter(Boolean).join(" · "),
+      capacity:Number(v.capacity || 100)
+    }));
+  }
+  return db.workers.map(w => ({
+    kind:"worker",
+    id:w.id,
+    title:w.title,
+    sub:[w.email, w.phone].filter(Boolean).join(" · "),
+    capacity:Number(w.capacity || 100)
+  }));
+}
+function assignmentsFor(row, date){
+  const d = iso(date);
+  if(row.kind === "worker"){
+    return db.assignments.filter(a => Number(a.workerId) === Number(row.id) && a.date === d);
+  }
+  return db.assignments.filter(a => Number(a.vehicleId) === Number(row.id) && a.date === d);
+}
+function usedCapacity(row, assignments){
+  if(row.kind === "worker"){
+    return assignments.reduce((sum,a)=>sum + Number(a.load || 100), 0);
+  }
+  return assignments.reduce((sum,a)=>sum + Number(a.vehicleLoad || 100), 0);
+}
+function jobById(id){ return db.jobs.find(j => Number(j.id) === Number(id)); }
+function workerById(id){ return db.workers.find(w => Number(w.id) === Number(id)); }
+function vehicleById(id){ return db.vehicles.find(v => Number(v.id) === Number(id)); }
+function assignmentById(id){ return db.assignments.find(a => Number(a.id) === Number(id)); }
+
+function render(){
+  renderHeader();
+  renderSide();
+  renderBoard();
+}
+function renderHeader(){
+  const days = ["Pracovník / vozidlo"];
+  for(let i=0;i<7;i++) days.push(czDate(addDays(weekStart,i)));
+  document.getElementById("head").innerHTML = days.map(d => `<div>${esc(d)}</div>`).join("");
+}
+function renderSide(){
+  const assignedJobIds = new Set(db.assignments.map(a => Number(a.jobId)));
+  const unassigned = db.jobs.filter(j => !assignedJobIds.has(Number(j.id)) && matchesSearch(j));
+
+  document.getElementById("unassigned").innerHTML = unassigned.length
+    ? unassigned.map(j => jobCard(j, null)).join("")
+    : `<div class="empty">Žádné nepřiřazené zakázky. Přidej novou zakázku tlačítkem nahoře.</div>`;
+
+  document.getElementById("peopleList").innerHTML = db.workers.length
+    ? db.workers.map(w => `
+      <div class="mini-card" ondblclick="openWorker(${w.id})">
+        <div class="job-title">${esc(w.title)}</div>
+        <div class="job-meta">${esc(w.email || "")}</div>
+        <div class="badges"><span class="badge">${esc(w.capacity || 100)} %</span></div>
+      </div>
+    `).join("")
+    : `<div class="empty">Zatím nejsou založení pracovníci.</div>`;
+
+  document.getElementById("carsList").innerHTML = db.vehicles.length
+    ? db.vehicles.map(v => `
+      <div class="mini-card" ondblclick="openVehicle(${v.id})">
+        <div class="job-title">${esc(v.title)}</div>
+        <div class="job-meta">${esc(v.spz || "")} ${esc(v.type || "")}</div>
+        <div class="badges"><span class="badge">${esc(v.capacity || 100)} %</span></div>
+      </div>
+    `).join("")
+    : `<div class="empty">Zatím nejsou založená vozidla.</div>`;
+}
+function renderBoard(){
+  const body = document.getElementById("body");
+  const r = rows();
+
+  if(r.length === 0){
+    body.innerHTML = `<div class="row"><div class="name-cell">Bez dat</div><div class="cell" style="grid-column:span 7"><div class="empty">Nejdřív přidej pracovníky nebo vozidla.</div></div></div>`;
+    return;
+  }
+
+  body.innerHTML = r.map(row => {
+    let html = `<div class="row">
+      <div class="name-cell">${esc(row.title)}<div class="sub">${esc(row.sub)}</div></div>`;
+
+    for(let i=0;i<7;i++){
+      const date = addDays(weekStart,i);
+      const ass = assignmentsFor(row, date);
+      const used = usedCapacity(row, ass);
+      html += `<div class="cell"
+        data-row-kind="${row.kind}"
+        data-row-id="${row.id}"
+        data-date="${iso(date)}"
+        ondragover="allowDrop(event)"
+        ondragleave="leaveDrop(event)"
+        ondrop="dropJob(event)">
+        <div class="capacity ${used > row.capacity ? "over" : ""}">
+          <span>${used}/${row.capacity}%</span>
+          <span>${used > row.capacity ? "PŘETÍŽENO" : ""}</span>
+        </div>`;
+
+      ass.forEach(a => {
+        const job = jobById(a.jobId);
+        if(job && matchesSearch(job)) html += jobCard(job, a);
+      });
+
+      html += `</div>`;
+    }
+    html += `</div>`;
+    return html;
+  }).join("");
+}
+function jobCard(job, assignment){
+  const worker = assignment ? workerById(assignment.workerId) : null;
+  const vehicle = assignment ? vehicleById(assignment.vehicleId) : null;
+  return `<div class="job ${priorityClass(job.priority)}"
+    draggable="true"
+    data-job-id="${job.id}"
+    data-assignment-id="${assignment ? assignment.id : ""}"
+    ondragstart="dragJob(event)"
+    ondblclick="${assignment ? `openAssignment(${assignment.id})` : `openJob(${job.id})`}">
+    <div class="job-title">${esc(job.title)}</div>
+    <div class="job-meta">${esc(job.address || "")}</div>
+    <div class="job-meta">${esc(job.contact || "")} ${esc(job.phone || "")}</div>
+    <div class="badges">
+      <span class="badge">${esc(job.priority || "Střední")}</span>
+      <span class="badge">${esc(assignment ? assignment.load : (job.load || 100))}%</span>
+      ${worker ? `<span class="badge">👤 ${esc(worker.title)}</span>` : ""}
+      ${vehicle ? `<span class="badge">🚐 ${esc(vehicle.title)}</span>` : ""}
+    </div>
+  </div>`;
+}
+
+function dragJob(ev){
+  const card = ev.target.closest(".job");
+  ev.dataTransfer.setData("jobId", card.dataset.jobId);
+  ev.dataTransfer.setData("assignmentId", card.dataset.assignmentId || "");
+  ev.dataTransfer.effectAllowed = "move";
+}
+function allowDrop(ev){
+  ev.preventDefault();
+  ev.currentTarget.classList.add("dragover");
+}
+function leaveDrop(ev){
+  ev.currentTarget.classList.remove("dragover");
+}
+function dropJob(ev){
+  ev.preventDefault();
+  ev.currentTarget.classList.remove("dragover");
+
+  const jobId = Number(ev.dataTransfer.getData("jobId"));
+  const assignmentId = Number(ev.dataTransfer.getData("assignmentId") || 0);
+  const rowKind = ev.currentTarget.dataset.rowKind;
+  const rowId = Number(ev.currentTarget.dataset.rowId);
+  const date = ev.currentTarget.dataset.date;
+  const job = jobById(jobId);
+  if(!job) return;
+
+  let assignment = assignmentId ? assignmentById(assignmentId) : db.assignments.find(a => Number(a.jobId) === jobId);
+
+  if(!assignment){
+    assignment = {
+      id: nextId(db.assignments),
+      jobId,
+      workerId: null,
+      vehicleId: null,
+      date,
+      load: Number(job.load || 100),
+      vehicleLoad: Number(job.vehicleLoad || 100)
+    };
+    db.assignments.push(assignment);
+  }
+
+  assignment.date = date;
+  if(rowKind === "worker") assignment.workerId = rowId;
+  if(rowKind === "vehicle") assignment.vehicleId = rowId;
+
+  saveDb();
+  render();
+}
+
+function openJob(id){
+  selectedJobId = id || null;
+  const j = id ? jobById(id) : null;
+  document.getElementById("jobModalTitle").textContent = j ? "Detail zakázky" : "Nová zakázka";
+  document.getElementById("j_title").value = j?.title || "";
+  document.getElementById("j_address").value = j?.address || "";
+  document.getElementById("j_contact").value = j?.contact || "";
+  document.getElementById("j_phone").value = j?.phone || "";
+  document.getElementById("j_priority").value = j?.priority || "Střední";
+  document.getElementById("j_state").value = j?.state || "Plánováno";
+  document.getElementById("j_load").value = j?.load || 100;
+  document.getElementById("j_vehicle_load").value = j?.vehicleLoad || 100;
+  document.getElementById("j_from").value = j?.timeFrom || "";
+  document.getElementById("j_to").value = j?.timeTo || "";
+  document.getElementById("j_note").value = j?.note || "";
+  document.getElementById("deleteJobBtn").classList.toggle("hidden", !j);
+  openModal("jobModal");
+}
+function saveJob(){
+  const payload = {
+    title: document.getElementById("j_title").value.trim(),
+    address: document.getElementById("j_address").value.trim(),
+    contact: document.getElementById("j_contact").value.trim(),
+    phone: document.getElementById("j_phone").value.trim(),
+    priority: document.getElementById("j_priority").value,
+    state: document.getElementById("j_state").value.trim(),
+    load: Number(document.getElementById("j_load").value || 100),
+    vehicleLoad: Number(document.getElementById("j_vehicle_load").value || 100),
+    timeFrom: document.getElementById("j_from").value,
+    timeTo: document.getElementById("j_to").value,
+    note: document.getElementById("j_note").value.trim()
+  };
+  if(!payload.title){
+    alert("Vyplň název zakázky.");
+    return;
+  }
+  if(selectedJobId){
+    const i = db.jobs.findIndex(j => Number(j.id) === Number(selectedJobId));
+    db.jobs[i] = { ...db.jobs[i], ...payload };
+  } else {
+    db.jobs.push({ id: nextId(db.jobs), ...payload });
+  }
+  saveDb();
+  closeModal("jobModal");
+  render();
+}
+function deleteJob(){
+  if(!selectedJobId) return;
+  if(!confirm("Smazat zakázku včetně jejího přiřazení v plánu?")) return;
+  db.jobs = db.jobs.filter(j => Number(j.id) !== Number(selectedJobId));
+  db.assignments = db.assignments.filter(a => Number(a.jobId) !== Number(selectedJobId));
+  saveDb();
+  closeModal("jobModal");
+  render();
+}
+
+function openWorker(id){
+  selectedWorkerId = id || null;
+  const w = id ? workerById(id) : null;
+  document.getElementById("workerModalTitle").textContent = w ? "Detail pracovníka" : "Nový pracovník";
+  document.getElementById("w_title").value = w?.title || "";
+  document.getElementById("w_email").value = w?.email || "";
+  document.getElementById("w_phone").value = w?.phone || "";
+  document.getElementById("w_capacity").value = w?.capacity || 100;
+  document.getElementById("deleteWorkerBtn").classList.toggle("hidden", !w);
+  openModal("workerModal");
+}
+function saveWorker(){
+  const payload = {
+    title: document.getElementById("w_title").value.trim(),
+    email: document.getElementById("w_email").value.trim(),
+    phone: document.getElementById("w_phone").value.trim(),
+    capacity: Number(document.getElementById("w_capacity").value || 100)
+  };
+  if(!payload.title){
+    alert("Vyplň jméno pracovníka.");
+    return;
+  }
+  if(selectedWorkerId){
+    const i = db.workers.findIndex(w => Number(w.id) === Number(selectedWorkerId));
+    db.workers[i] = { ...db.workers[i], ...payload };
+  } else {
+    db.workers.push({ id: nextId(db.workers), ...payload });
+  }
+  saveDb();
+  closeModal("workerModal");
+  render();
+}
+function deleteWorker(){
+  if(!selectedWorkerId) return;
+  if(!confirm("Smazat pracovníka? Zakázky zůstanou, jen se odebere pracovník z přiřazení.")) return;
+  db.workers = db.workers.filter(w => Number(w.id) !== Number(selectedWorkerId));
+  db.assignments.forEach(a => {
+    if(Number(a.workerId) === Number(selectedWorkerId)) a.workerId = null;
+  });
+  saveDb();
+  closeModal("workerModal");
+  render();
+}
+
+function openVehicle(id){
+  selectedVehicleId = id || null;
+  const v = id ? vehicleById(id) : null;
+  document.getElementById("vehicleModalTitle").textContent = v ? "Detail vozidla" : "Nové vozidlo";
+  document.getElementById("v_title").value = v?.title || "";
+  document.getElementById("v_spz").value = v?.spz || "";
+  document.getElementById("v_type").value = v?.type || "";
+  document.getElementById("v_capacity").value = v?.capacity || 100;
+  document.getElementById("v_note").value = v?.note || "";
+  document.getElementById("deleteVehicleBtn").classList.toggle("hidden", !v);
+  openModal("vehicleModal");
+}
+function saveVehicle(){
+  const payload = {
+    title: document.getElementById("v_title").value.trim(),
+    spz: document.getElementById("v_spz").value.trim(),
+    type: document.getElementById("v_type").value.trim(),
+    capacity: Number(document.getElementById("v_capacity").value || 100),
+    note: document.getElementById("v_note").value.trim()
+  };
+  if(!payload.title){
+    alert("Vyplň název vozidla.");
+    return;
+  }
+  if(selectedVehicleId){
+    const i = db.vehicles.findIndex(v => Number(v.id) === Number(selectedVehicleId));
+    db.vehicles[i] = { ...db.vehicles[i], ...payload };
+  } else {
+    db.vehicles.push({ id: nextId(db.vehicles), ...payload });
+  }
+  saveDb();
+  closeModal("vehicleModal");
+  render();
+}
+function deleteVehicle(){
+  if(!selectedVehicleId) return;
+  if(!confirm("Smazat vozidlo? Zakázky zůstanou, jen se odebere vozidlo z přiřazení.")) return;
+  db.vehicles = db.vehicles.filter(v => Number(v.id) !== Number(selectedVehicleId));
+  db.assignments.forEach(a => {
+    if(Number(a.vehicleId) === Number(selectedVehicleId)) a.vehicleId = null;
+  });
+  saveDb();
+  closeModal("vehicleModal");
+  render();
+}
+
+function openAssignment(id){
+  selectedAssignmentId = id;
+  const a = assignmentById(id);
+  if(!a) return;
+  const j = jobById(a.jobId);
+  document.getElementById("a_job_title").value = j?.title || "";
+  document.getElementById("a_date").value = a.date || iso(new Date());
+  document.getElementById("a_load").value = a.load || 100;
+  document.getElementById("a_vehicle_load").value = a.vehicleLoad || 100;
+
+  const workerSelect = document.getElementById("a_worker");
+  workerSelect.innerHTML = `<option value="">Bez pracovníka</option>` + db.workers.map(w => `<option value="${w.id}">${esc(w.title)}</option>`).join("");
+  workerSelect.value = a.workerId || "";
+
+  const vehicleSelect = document.getElementById("a_vehicle");
+  vehicleSelect.innerHTML = `<option value="">Bez vozidla</option>` + db.vehicles.map(v => `<option value="${v.id}">${esc(v.title)} ${v.spz ? "· " + esc(v.spz) : ""}</option>`).join("");
+  vehicleSelect.value = a.vehicleId || "";
+
+  openModal("assignModal");
+}
+function saveAssignmentFromModal(){
+  const a = assignmentById(selectedAssignmentId);
+  if(!a) return;
+  a.date = document.getElementById("a_date").value;
+  a.workerId = document.getElementById("a_worker").value ? Number(document.getElementById("a_worker").value) : null;
+  a.vehicleId = document.getElementById("a_vehicle").value ? Number(document.getElementById("a_vehicle").value) : null;
+  a.load = Number(document.getElementById("a_load").value || 100);
+  a.vehicleLoad = Number(document.getElementById("a_vehicle_load").value || 100);
+  saveDb();
+  closeModal("assignModal");
+  render();
+}
+function unassignCurrent(){
+  if(!selectedAssignmentId) return;
+  db.assignments = db.assignments.filter(a => Number(a.id) !== Number(selectedAssignmentId));
+  saveDb();
+  closeModal("assignModal");
+  render();
+}
+
+function exportData(){
+  const blob = new Blob([JSON.stringify(db, null, 2)], {type:"application/json"});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = "elmorrel-dispecink-data.json";
+  a.click();
+  URL.revokeObjectURL(url);
+}
+function importData(event){
+  const file = event.target.files[0];
+  if(!file) return;
+  const reader = new FileReader();
+  reader.onload = () => {
+    try{
+      const imported = JSON.parse(reader.result);
+      if(!imported.jobs || !imported.workers || !imported.vehicles || !imported.assignments){
+        alert("Soubor nemá správnou strukturu.");
+        return;
+      }
+      db = imported;
+      saveDb();
+      render();
+      alert("Import hotový.");
+    } catch(e){
+      alert("Import se nepodařil.");
+    }
+  };
+  reader.readAsText(file);
+  event.target.value = "";
+}
+
+render();
+</script>
+</body>
+</html>
