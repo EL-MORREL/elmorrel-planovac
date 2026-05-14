@@ -204,12 +204,12 @@ async function importData(e){
     try{
       const imported = JSON.parse(r.result);
 
-      if(
-        !imported.jobs ||
-        !imported.workers ||
-        !imported.vehicles ||
-        !imported.assignments
-      ){
+if(
+  !Array.isArray(imported.jobs) ||
+  !Array.isArray(imported.workers) ||
+  !Array.isArray(imported.vehicles) ||
+  !Array.isArray(imported.assignments)
+){
         alert("Soubor nemá správnou strukturu.");
         return;
       }
