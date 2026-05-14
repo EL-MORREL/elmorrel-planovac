@@ -59,7 +59,7 @@ aside h2{font-size:16px;margin:10px 0}.list{display:flex;flex-direction:column;g
   <button onclick="register()">Registrace</button>
   <button onclick="logout()">Odhlásit</button>
 
-  <div id="currentUser" style="margin-left:auto;font-weight:bold;"></div>
+  <<div id="currentUserBox" style="margin-left:auto;font-weight:bold;"></div>
 </div><h1>EL-Morrel Dispečink</h1><div class="right" id="status">Připraveno</div></header>
 <div class="toolbar">
 <button onclick="openJob()">+ Zakázka</button><button onclick="openWorker()">+ Pracovník</button><button onclick="openVehicle()">+ Vozidlo</button>
@@ -216,8 +216,16 @@ function openJob(id){selectedJobId=id||null;const j=id?jobById(id):null;jobModal
       <b>${j.updatedBy}</b>
     `;
   }
-};openModal("jobModal")}
-function getJobPayload(){return{title:j_title.value.trim(),address:j_address.value.trim(),contact:j_contact.value.trim(),phone:j_phone.value.trim(),priority:j_priority.value,skill:j_skill.value,state:j_state.value,days:Number(j_days.value||0),people:Number(j_people.value||0),estimated:Number(j_estimated.value||0),load:Number(j_load.value||100),vehicleLoad:Number(j_vehicle_load.value||100),timeFrom:j_from.value,timeTo:j_to.value,note:j_note.value.trim()updatedAt:new Date().toISOString(),
+
+}else{
+  jobStats.innerHTML = "";
+}
+
+openModal("jobModal");
+}
+function getJobPayload(){return{title:j_title.value.trim(),address:j_address.value.trim(),contact:j_contact.value.trim(),phone:j_phone.value.trim(),priority:j_priority.value,skill:j_skill.value,state:j_state.value,days:Number(j_days.value||0),people:Number(j_people.value||0),estimated:Number(j_estimated.value||0),load:Number(j_load.value||100),vehicleLoad:Number(j_vehicle_load.value||100),timeFrom:j_from.value,timeTo:j_to.value,note:j_note.value.trim(),
+updatedAt:new Date().toISOString(),
+updatedBy:currentUser?.email || "neznámý",
 updatedBy:currentUser?.email || "neznámý"}}
 async function saveJob(){const p=getJobPayload();if(!p.title){alert("Vyplň název zakázky.");return}if(selectedJobId){const i=db.jobs.findIndex(j=>Number(j.id)===Number(selectedJobId));db.jobs[i]={...db.jobs[i],...p}}else db.jobs.push({id:nextId(db.jobs),invoiced:p.state==="Vyfakturováno",...p});if(p.state==="Vyfakturováno"){const j=selectedJobId?jobById(selectedJobId):db.jobs[db.jobs.length-1];if(j)j.invoiced=true}const ok = await saveDb();
 if(!ok) return;closeModal("jobModal");render()}
@@ -322,11 +330,14 @@ async function logout(){
 }
 
 function currentUserDiv(){
-  currentUser.innerHTML =
+
+  const el = document.getElementById("currentUserBox");
+
+  el.innerHTML =
     currentUser
       ? "Přihlášen: " + currentUser.email
       : "Nepřihlášen";
-}  
+}
 loadDb();
 supabaseClient.auth.getUser().then(({ data }) => {
   currentUser = data.user;
