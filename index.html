@@ -16,7 +16,13 @@ const supabaseClient = supabase.createClient(
 :root{--blue:#0f6cbd;--blue2:#0b5cab;--bg:#f4f7fb;--line:#dbe3ef;--text:#152033;--muted:#607086;--red:#dc2626;--orange:#d97706;--green:#16a34a;--shadow:0 8px 24px rgba(15,35,65,.10)}
 *{box-sizing:border-box}
 html,body{height:100%}
-body{margin:0;font-family:Segoe UI,Arial,sans-serif;background:var(--bg);color:var(--text);overflow:hidden}
+body{
+  margin:0;
+  font-family:Segoe UI,Arial,sans-serif;
+  background:var(--bg);
+  color:var(--text);
+  overflow:auto;
+}
 header{
   background:var(--blue);
   color:#fff;
@@ -87,7 +93,11 @@ button{border:0;border-radius:8px;background:var(--blue);color:#fff;padding:9px 
 button:hover{background:var(--blue2)}button.secondary{background:#e8eef7;color:#152033}button.secondary:hover{background:#dce6f3}button.danger{background:var(--red)}
 input,select,textarea{border:1px solid #cbd5e1;border-radius:8px;padding:9px;font:inherit;background:#fff;width:100%}
 .toolbar input,.toolbar select{width:auto;min-width:190px}
-.layout{display:grid;grid-template-columns:340px 1fr;height:calc(100vh - 108px);overflow:hidden}
+.layout{
+  display:grid;
+  grid-template-columns:340px 1fr;
+  min-height:calc(100vh - 108px);
+}
 aside{background:#fff;border-right:1px solid var(--line);padding:12px;overflow:auto}
 .tabs{display:flex;gap:6px;margin-bottom:10px;flex-wrap:wrap}.tab{background:#eef4fb;color:#24364c;padding:8px 10px;border-radius:8px;cursor:pointer;font-weight:650;font-size:13px}.tab.active{background:var(--blue);color:#fff}
 aside h2{font-size:16px;margin:10px 0}.list{display:flex;flex-direction:column;gap:8px}
@@ -110,6 +120,28 @@ aside h2{font-size:16px;margin:10px 0}.list{display:flex;flex-direction:column;g
 .grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}.full{grid-column:1/-1}label{font-size:13px;font-weight:700;color:#30435a}.actions{display:flex;gap:8px;justify-content:flex-end;margin-top:14px;flex-wrap:wrap}
 .small{font-size:12px;color:var(--muted)}.hidden{display:none!important}.quick-actions{display:flex;gap:6px;flex-wrap:wrap;margin-top:7px}.quick-actions button{padding:5px 7px;font-size:11px}
 @media(max-width:900px){
+
+  .layout{
+    display:flex;
+    flex-direction:column;
+    height:auto;
+  }
+
+  aside{
+    border-right:0;
+    border-bottom:1px solid var(--line);
+  }
+
+  .board-wrap{
+    overflow:auto;
+    height:auto;
+    padding:8px;
+  }
+
+  body{
+    overflow:auto;
+  }
+}
 
   .board{
     min-width:980px;
