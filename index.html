@@ -956,9 +956,9 @@ async function importData(e){
 }
 function startRealtime(){
 
-  if(realtimeSubscribed || !currentUser) return;
+  if(!currentUser) return;
 
-  realtimeSubscribed = true;
+  supabaseClient.removeAllChannels();
 
   supabaseClient
     .channel('app_state_changes')
@@ -990,7 +990,11 @@ function startRealtime(){
         }
       }
     )
-    .subscribe();
+    .subscribe((status) => {
+      console.log("Realtime:", status);
+    });
+
+  realtimeSubscribed = true;
 }
 async function register(){
   const email = loginEmail.value;
