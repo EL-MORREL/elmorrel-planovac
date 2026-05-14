@@ -15,7 +15,7 @@ const supabaseClient = supabase.createClient(
 <style>
 :root{--blue:#0f6cbd;--blue2:#0b5cab;--bg:#f4f7fb;--line:#dbe3ef;--text:#152033;--muted:#607086;--red:#dc2626;--orange:#d97706;--green:#16a34a;--shadow:0 8px 24px rgba(15,35,65,.10)}
 *{box-sizing:border-box}
-html,body{height:100%}
+html,body{height:100%;overflow:auto;}
 body{
   margin:0;
   font-family:Segoe UI,Arial,sans-serif;
@@ -103,12 +103,19 @@ aside{background:#fff;border-right:1px solid var(--line);padding:12px;overflow:a
 aside h2{font-size:16px;margin:10px 0}.list{display:flex;flex-direction:column;gap:8px}
 .board-wrap{
   overflow:auto;
-  height:100%;
   padding:12px;
-  -webkit-overflow-scrolling:touch;
   scroll-behavior:smooth;
 }
-.board{min-width:1960px;width:max-content;background:#fff;border:1px solid var(--line);border-radius:14px;overflow:visible;box-shadow:var(--shadow)}
+.board{
+  min-width:1960px;
+  width:max-content;
+  background:#fff;
+  border:1px solid var(--line);
+  border-radius:14px;
+  overflow:visible;
+  box-shadow:var(--shadow);
+  transform-origin: top left;
+}
 .head,.row{display:grid;grid-template-columns:240px repeat(7,240px)}
 .head{position:sticky;top:0;z-index:10;background:#f8fbff}.head>div{padding:12px;border-right:1px solid var(--line);border-bottom:1px solid var(--line);font-weight:800;text-align:center}
 .name-cell{min-height:150px;background:#fff;padding:12px;border-right:1px solid var(--line);border-bottom:1px solid var(--line);font-weight:800}.sub{font-size:12px;color:var(--muted);font-weight:400;margin-top:4px;word-break:break-word}
