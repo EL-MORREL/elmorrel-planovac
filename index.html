@@ -307,13 +307,16 @@ async function saveDb(){
   return false;
     }
   const { error } = await supabaseClient
-    .from("app_state")
-    .upsert({
-  user_id: currentUser.id,
-  data: db
-}, {
-  onConflict: "user_id"
-});
+  .from("app_state")
+  .upsert(
+    {
+      id: 1,
+      data: db
+    },
+    {
+      onConflict: 'id'
+    }
+  );
 
   if(error){
     console.error("SAVE ERROR:", error);
