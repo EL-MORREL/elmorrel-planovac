@@ -309,14 +309,11 @@ async function saveDb(){
   const { error } = await supabaseClient
   .from("app_state")
   .upsert(
-    {
-      id: 1,
-      data: db
-    },
-    {
-      onConflict: 'id'
-    }
-  );
+  {
+    id: 1,
+    user_id: currentUser.id,
+    data: db
+  },
 
   if(error){
     console.error("SAVE ERROR:", error);
