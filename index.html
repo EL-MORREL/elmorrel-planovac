@@ -248,7 +248,11 @@ function getJobPayload(){
     updatedBy:currentUser?.email || "neznámý"
   }
 }
-async function saveJob(){const p=getJobPayload();if(!p.title){alert("Vyplň název zakázky.");return}if(selectedJobId){const i=db.jobs.findIndex(j=>Number(j.id)===Number(selectedJobId));db.jobs[i]={...db.jobs[i],...p}}else db.jobs.push({id:nextId(db.jobs),invoiced:p.state==="Vyfakturováno",...p});if(p.state==="Vyfakturováno"){const j=selectedJobId?jobById(selectedJobId):db.jobs[db.jobs.length-1];if(j)j.invoiced=true}const ok = await saveDb();
+async function saveJob(){
+  if(!currentUser){
+  alert("Nejste přihlášen");
+  return false;
+}const p=getJobPayload();if(!p.title){alert("Vyplň název zakázky.");return}if(selectedJobId){const i=db.jobs.findIndex(j=>Number(j.id)===Number(selectedJobId));db.jobs[i]={...db.jobs[i],...p}}else db.jobs.push({id:nextId(db.jobs),invoiced:p.state==="Vyfakturováno",...p});if(p.state==="Vyfakturováno"){const j=selectedJobId?jobById(selectedJobId):db.jobs[db.jobs.length-1];if(j)j.invoiced=true}const ok = await saveDb();
 if(!ok) return;closeModal("jobModal");render()}
 async function deleteJob(){if(!selectedJobId)return;if(!confirm("Smazat zakázku včetně jejího přiřazení v plánu?"))return;db.jobs=db.jobs.filter(j=>Number(j.id)!==Number(selectedJobId));db.assignments=db.assignments.filter(a=>Number(a.jobId)!==Number(selectedJobId));await saveDb();closeModal("jobModal");render()}
 async function duplicateJob(){if(!selectedJobId)return;const j=jobById(selectedJobId);if(!j)return;db.jobs.push({...j,id:nextId(db.jobs),title:j.title+" - kopie",state:"Nová",invoiced:false});await saveDb();closeModal("jobModal");render()}
@@ -324,6 +328,7 @@ async function register(){
 }
 
 async function login(){
+  if(!currentUser) return;
   const email = loginEmail.value;
   const password = loginPassword.value;
 
@@ -370,14 +375,17 @@ function currentUserDiv(){
 }
 supabaseClient.auth.getUser().then(async ({ data }) => {
 
- currentUser = data.user;
+  currentUser = data.user;
 
-document.querySelector(".layout").style.display = "";
-document.querySelector(".toolbar").style.display = "";
+  currentUserDiv();
 
-await loadDb();
+  if(currentUser){
 
-currentUserDiv();
+    document.querySelector(".layout").style.display = "";
+    document.querySelector(".toolbar").style.display = "";
+
+    await loadDb();
+
   }else{
 
     document.querySelector(".layout").style.display = "none";
