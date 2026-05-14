@@ -17,7 +17,70 @@ const supabaseClient = supabase.createClient(
 *{box-sizing:border-box}
 html,body{height:100%}
 body{margin:0;font-family:Segoe UI,Arial,sans-serif;background:var(--bg);color:var(--text);overflow:hidden}
-header{height:58px;background:var(--blue);color:#fff;display:flex;align-items:center;justify-content:space-between;padding:0 18px}
+header{
+  background:var(--blue);
+  color:#fff;
+  display:flex;
+  align-items:flex-start;
+  justify-content:space-between;
+  padding:12px 18px;
+  gap:12px;
+  flex-wrap:wrap;
+  #authBar{
+  display:flex;
+  gap:10px;
+  align-items:center;
+  flex-wrap:wrap;
+}
+
+#loginBox{
+  display:flex;
+  gap:10px;
+  align-items:center;
+  flex-wrap:wrap;
+}
+
+#loginBox input{
+  min-width:180px;
+}
+
+@media(max-width:700px){
+
+  header{
+    flex-direction:column;
+    align-items:stretch;
+  }
+
+  header h1{
+    font-size:18px;
+    line-height:1.2;
+  }
+
+  #authBar{
+    width:100%;
+    flex-direction:column;
+    align-items:stretch;
+  }
+
+  #loginBox{
+    width:100%;
+    flex-direction:column;
+    align-items:stretch;
+  }
+
+  #loginBox input,
+  #loginBox button,
+  #logoutBtn{
+    width:100%;
+    max-width:none!important;
+  }
+
+  #currentUserBox{
+    text-align:center;
+    margin-left:0!important;
+  }
+}
+}
 header h1{font-size:20px;margin:0}.right{font-size:13px;opacity:.95}
 .toolbar{min-height:50px;background:#fff;border-bottom:1px solid var(--line);display:flex;align-items:center;gap:8px;padding:9px 12px;flex-wrap:wrap}
 button{border:0;border-radius:8px;background:var(--blue);color:#fff;padding:9px 12px;font-weight:650;cursor:pointer}
@@ -79,8 +142,8 @@ aside h2{font-size:16px;margin:10px 0}.list{display:flex;flex-direction:column;g
 </head>
 <body>
 <header>
-  <div id="authBar" style="padding:10px;background:#fff;border-bottom:1px solid #ddd;display:flex;gap:10px;align-items:center;flex-wrap:wrap;">
-  <div id="loginBox" style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;">
+  <div id="authBar">
+  <div id="loginBox">
 
   <input id="loginEmail" placeholder="Email" style="max-width:220px">
   
