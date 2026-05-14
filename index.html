@@ -337,9 +337,14 @@ async function login(){
     return;
   }
 
-  currentUser = data.user;
+currentUser = data.user;
 
-  currentUserDiv();
+document.querySelector(".layout").style.display = "";
+document.querySelector(".toolbar").style.display = "";
+
+await loadDb();
+
+currentUserDiv();
 }
 
 async function logout(){
@@ -347,7 +352,11 @@ async function logout(){
 
   currentUser = null;
 
-  currentUserDiv();
+document.querySelector(".layout").style.display = "none";
+document.querySelector(".toolbar").style.display = "none";
+
+currentUserDiv();
+setStatus("Nepřihlášen");
 }
 
 function currentUserDiv(){
@@ -361,12 +370,14 @@ function currentUserDiv(){
 }
 supabaseClient.auth.getUser().then(async ({ data }) => {
 
-  currentUser = data.user;
+ currentUser = data.user;
 
-  currentUserDiv();
+document.querySelector(".layout").style.display = "";
+document.querySelector(".toolbar").style.display = "";
 
-  if(currentUser){
-    await loadDb();
+await loadDb();
+
+currentUserDiv();
   }else{
 
     document.querySelector(".layout").style.display = "none";
