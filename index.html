@@ -356,10 +356,21 @@ function currentUserDiv(){
       ? "Přihlášen: " + currentUser.email
       : "Nepřihlášen";
 }
-loadDb();
-supabaseClient.auth.getUser().then(({ data }) => {
+supabaseClient.auth.getUser().then(async ({ data }) => {
+
   currentUser = data.user;
+
   currentUserDiv();
+
+  if(currentUser){
+    await loadDb();
+  }else{
+
+    document.querySelector(".layout").style.display = "none";
+    document.querySelector(".toolbar").style.display = "none";
+
+    setStatus("Nepřihlášen");
+  }
 });
 supabaseClient
   .channel('app_state_changes')
