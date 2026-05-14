@@ -126,6 +126,7 @@ let selectedVehicleId = null;
 let selectedAssignmentId = null;
 function createEmptyDb(){return{jobs:[],workers:[],vehicles:[],assignments:[]}}
 async function loadDb(){
+  if(!currentUser) return;
   const { data, error } = await supabaseClient
     .from("app_state")
     .select("data")
@@ -148,6 +149,10 @@ async function loadDb(){
   render();
 }
 async function saveDb(){
+  if(!currentUser){
+  alert("Nejste přihlášen");
+  return false;
+    }
   const { error } = await supabaseClient
     .from("app_state")
     .upsert({
@@ -248,11 +253,7 @@ function getJobPayload(){
     updatedBy:currentUser?.email || "neznámý"
   }
 }
-async function saveJob(){
-  if(!currentUser){
-  alert("Nejste přihlášen");
-  return false;
-}const p=getJobPayload();if(!p.title){alert("Vyplň název zakázky.");return}if(selectedJobId){const i=db.jobs.findIndex(j=>Number(j.id)===Number(selectedJobId));db.jobs[i]={...db.jobs[i],...p}}else db.jobs.push({id:nextId(db.jobs),invoiced:p.state==="Vyfakturováno",...p});if(p.state==="Vyfakturováno"){const j=selectedJobId?jobById(selectedJobId):db.jobs[db.jobs.length-1];if(j)j.invoiced=true}const ok = await saveDb();
+async function saveJob(){const p=getJobPayload();if(!p.title){alert("Vyplň název zakázky.");return}if(selectedJobId){const i=db.jobs.findIndex(j=>Number(j.id)===Number(selectedJobId));db.jobs[i]={...db.jobs[i],...p}}else db.jobs.push({id:nextId(db.jobs),invoiced:p.state==="Vyfakturováno",...p});if(p.state==="Vyfakturováno"){const j=selectedJobId?jobById(selectedJobId):db.jobs[db.jobs.length-1];if(j)j.invoiced=true}const ok = await saveDb();
 if(!ok) return;closeModal("jobModal");render()}
 async function deleteJob(){if(!selectedJobId)return;if(!confirm("Smazat zakázku včetně jejího přiřazení v plánu?"))return;db.jobs=db.jobs.filter(j=>Number(j.id)!==Number(selectedJobId));db.assignments=db.assignments.filter(a=>Number(a.jobId)!==Number(selectedJobId));await saveDb();closeModal("jobModal");render()}
 async function duplicateJob(){if(!selectedJobId)return;const j=jobById(selectedJobId);if(!j)return;db.jobs.push({...j,id:nextId(db.jobs),title:j.title+" - kopie",state:"Nová",invoiced:false});await saveDb();closeModal("jobModal");render()}
