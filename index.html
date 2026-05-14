@@ -409,7 +409,7 @@ function dragJob(ev){const card=ev.target.closest(".job");ev.dataTransfer.setDat
 function allowDrop(ev){ev.preventDefault();ev.currentTarget.classList.add("dragover")}
 function leaveDrop(ev){ev.currentTarget.classList.remove("dragover")}
 let autoScrollInterval = null;
-
+let lastDragEvent = null;
 document.addEventListener("dragover", (e) => {
 
   const wrap = document.querySelector(".board-wrap");
@@ -425,23 +425,43 @@ document.addEventListener("dragover", (e) => {
 
   autoScrollInterval = setInterval(() => {
 
-    if(e.clientX > rect.right - edgeSize){
+   if(!lastDragEvent) return;
+
+  const wrap = document.querySelector(".board-wrap");
+
+  const edgeSize = 120;
+  const scrollSpeed = 40;
+
+  if(wrap){
+
+    const rect = wrap.getBoundingClientRect();
+
+    if(lastDragEvent.clientX > rect.right - edgeSize){
       wrap.scrollLeft += scrollSpeed;
     }
 
-    if(e.clientX < rect.left + edgeSize){
+    if(lastDragEvent.clientX < rect.left + edgeSize){
       wrap.scrollLeft -= scrollSpeed;
     }
+  }
 
-    if(e.clientY > rect.bottom - edgeSize){
-      wrap.scrollTop += scrollSpeed;
-    }
+  if(lastDragEvent.clientX > window.innerWidth - edgeSize){
+    window.scrollBy(scrollSpeed, 0);
+  }
 
-    if(e.clientY < rect.top + edgeSize){
-      wrap.scrollTop -= scrollSpeed;
-    }
+  if(lastDragEvent.clientX < edgeSize){
+    window.scrollBy(-scrollSpeed, 0);
+  }
 
-  }, 16);
+  if(lastDragEvent.clientY > window.innerHeight - edgeSize){
+    window.scrollBy(0, scrollSpeed);
+  }
+
+  if(lastDragEvent.clientY < edgeSize){
+    window.scrollBy(0, -scrollSpeed);
+  }
+
+}, 16);
 
 });
 
