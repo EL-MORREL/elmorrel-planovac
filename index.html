@@ -424,6 +424,26 @@ function currentUserDiv(){
     logoutBtn.style.display = "none";
   }
 }
+supabaseClient.auth.getUser().then(async ({ data }) => {
+
+  currentUser = data.user;
+
+  currentUserDiv();
+
+  if(currentUser){
+
+    document.querySelector(".layout").style.display = "";
+    document.querySelector(".toolbar").style.display = "";
+
+    await loadDb();
+
+  }else{
+
+    document.querySelector(".layout").style.display = "none";
+    document.querySelector(".toolbar").style.display = "none";
+
+    setStatus("Nepřihlášen");
+  }
 });
 supabaseClient
   .channel('app_state_changes')
