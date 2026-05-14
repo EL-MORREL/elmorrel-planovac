@@ -4,7 +4,11 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>EL-Morrel Dispečink</title>
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>  
+  const supabase = window.supabase.createClient(
+  "https://rakampnnjueauqvuchla.supabase.co",
+  "sb_publishable_6zKZ9_884ZLe1pB8NX_70g_Ka4nRGnw"
+);
 <style>
 :root{--blue:#0f6cbd;--blue2:#0b5cab;--bg:#f4f7fb;--line:#dbe3ef;--text:#152033;--muted:#607086;--red:#dc2626;--orange:#d97706;--green:#16a34a;--shadow:0 8px 24px rgba(15,35,65,.10)}
 *{box-sizing:border-box}
@@ -178,10 +182,7 @@ async function exportData(){const blob=new Blob([JSON.stringify(db,null,2)],{typ
 async function importData(e){const file=e.target.files[0];if(!file)return;const r=new FileReader();r.onload=()=>{try{const imported=JSON.parse(r.result);if(!imported.jobs||!imported.workers||!imported.vehicles||!imported.assignments){alert("Soubor nemá správnou strukturu.");return}db=imported;saveDb();render();alert("Import hotový.")}catch(err){alert("Import se nepodařil.")}};r.readAsText(file);e.target.value=""}
 loadDb();
 </script>
-  const supabase = window.supabase.createClient(
-  "https://rakampnnjueauqvuchla.supabase.co",
-  "sb_publishable_6zKZ9_884ZLe1pB8NX_70g_Ka4nRGnw"
-);
+
   
 </body>
 </html>
