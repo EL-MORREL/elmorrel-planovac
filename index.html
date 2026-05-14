@@ -26,6 +26,7 @@ header{
   padding:12px 18px;
   gap:12px;
   flex-wrap:wrap;
+}
   #authBar{
   display:flex;
   gap:10px;
@@ -80,7 +81,6 @@ header{
     margin-left:0!important;
   }
 }
-}
 header h1{font-size:20px;margin:0}.right{font-size:13px;opacity:.95}
 .toolbar{min-height:50px;background:#fff;border-bottom:1px solid var(--line);display:flex;align-items:center;gap:8px;padding:9px 12px;flex-wrap:wrap}
 button{border:0;border-radius:8px;background:var(--blue);color:#fff;padding:9px 12px;font-weight:650;cursor:pointer}
@@ -110,7 +110,53 @@ aside h2{font-size:16px;margin:10px 0}.list{display:flex;flex-direction:column;g
 .grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}.full{grid-column:1/-1}label{font-size:13px;font-weight:700;color:#30435a}.actions{display:flex;gap:8px;justify-content:flex-end;margin-top:14px;flex-wrap:wrap}
 .small{font-size:12px;color:var(--muted)}.hidden{display:none!important}.quick-actions{display:flex;gap:6px;flex-wrap:wrap;margin-top:7px}.quick-actions button{padding:5px 7px;font-size:11px}
 @media(max-width:900px){
-  ...
+
+  .board{
+    min-width:980px;
+  }
+
+  .head,
+  .row{
+    grid-template-columns:140px repeat(7,120px);
+  }
+
+  .name-cell{
+    min-height:110px;
+    padding:8px;
+    font-size:13px;
+  }
+
+  .cell{
+    min-height:110px;
+    padding:4px;
+  }
+
+  .job{
+    padding:5px;
+    margin-bottom:5px;
+  }
+
+  .job-title{
+    font-size:11px;
+  }
+
+  .job-meta{
+    font-size:10px;
+  }
+
+  .badge{
+    font-size:9px;
+    padding:1px 4px;
+  }
+
+  .capacity{
+    font-size:10px;
+  }
+
+  .head > div{
+    padding:6px;
+    font-size:11px;
+  }
 }
 
 @media(max-width:700px){
@@ -142,25 +188,32 @@ aside h2{font-size:16px;margin:10px 0}.list{display:flex;flex-direction:column;g
 </head>
 <body>
 <header>
+  <h1>EL-Morrel Dispečink</h1>
+
+  <div class="right" id="status">Připraveno</div>
+
   <div id="authBar">
-  <div id="loginBox">
 
-  <input id="loginEmail" placeholder="Email" style="max-width:220px">
-  
-  <input id="loginPassword" type="password" placeholder="Heslo" style="max-width:220px">
+    <div id="loginBox">
 
-  <button onclick="login()">Přihlásit</button>
+      <input id="loginEmail" placeholder="Email" style="max-width:220px">
 
-  <button onclick="register()">Registrace</button>
+      <input id="loginPassword" type="password" placeholder="Heslo" style="max-width:220px">
 
-</div>
+      <button onclick="login()">Přihlásit</button>
 
-<button id="logoutBtn" onclick="logout()" style="display:none">
-  Odhlásit
-</button>
+      <button onclick="register()">Registrace</button>
 
-  <div id="currentUserBox" style="margin-left:auto;font-weight:bold;"></div>
-</div><h1>EL-Morrel Dispečink</h1><div class="right" id="status">Připraveno</div></header>
+    </div>
+
+    <button id="logoutBtn" onclick="logout()" style="display:none">
+      Odhlásit
+    </button>
+
+    <div id="currentUserBox" style="margin-left:auto;font-weight:bold;"></div>
+
+  </div>
+</header>
 <div class="toolbar">
 <button onclick="openJob()">+ Zakázka</button><button onclick="openWorker()">+ Pracovník</button><button onclick="openVehicle()">+ Vozidlo</button>
 <button class="secondary" onclick="prevWeek()">← týden</button><button class="secondary" onclick="goToday()">dnes</button><button class="secondary" onclick="nextWeek()">týden →</button>
@@ -230,7 +283,7 @@ async function loadDb(){
   const { data, error } = await supabaseClient
     .from("app_state")
     .select("data")
-    .eq("id", 1)
+    .eq("user_id", currentUser.id)
     .maybeSingle();
 
   if(error){
@@ -256,9 +309,11 @@ async function saveDb(){
   const { error } = await supabaseClient
     .from("app_state")
     .upsert({
-      id: 1,
-      data: db
-    });
+  user_id: currentUser.id,
+  data: db
+}, {
+  onConflict: "user_id"
+});
 
   if(error){
     console.error("SAVE ERROR:", error);
@@ -410,7 +465,46 @@ async function importData(e){
   e.target.value = "";
 }
 let currentUser = null;
+let realtimeSubscribed = false;
 
+function startRealtime(){
+
+  if(realtimeSubscribed || !currentUser) return;
+
+  realtimeSubscribed = true;
+
+  supabaseClient
+    .channel('app_state_changes')
+    .on(
+      'postgres_changes',
+      {
+        event: '*',
+        schema: 'public',
+        table: 'app_state',
+        filter: `user_id=eq.${currentUser.id}`
+      },
+      async () => {
+
+        const { data, error } = await supabaseClient
+          .from("app_state")
+          .select("data")
+          .eq("user_id", currentUser.id)
+          .single();
+
+        if(error){
+          console.error(error);
+          return;
+        }
+
+        if(data?.data){
+          db = data.data;
+          render();
+          setStatus("Aktualizováno z cloudu");
+        }
+      }
+    )
+    .subscribe();
+}
 async function register(){
   const email = loginEmail.value;
   const password = loginPassword.value;
@@ -449,7 +543,7 @@ document.querySelector(".layout").style.display = "";
 document.querySelector(".toolbar").style.display = "";
 
 await loadDb();
-
+startRealtime();
 currentUserDiv();
 }
 
@@ -457,6 +551,7 @@ async function logout(){
   await supabaseClient.auth.signOut();
 
   currentUser = null;
+  realtimeSubscribed = false;
 
 document.querySelector(".layout").style.display = "none";
 document.querySelector(".toolbar").style.display = "none";
@@ -499,6 +594,7 @@ supabaseClient.auth.getUser().then(async ({ data }) => {
     document.querySelector(".toolbar").style.display = "";
 
     await loadDb();
+    startRealtime();
 
   }else{
 
@@ -508,36 +604,7 @@ supabaseClient.auth.getUser().then(async ({ data }) => {
     setStatus("Nepřihlášen");
   }
 });
-supabaseClient
-  .channel('app_state_changes')
-  .on(
-    'postgres_changes',
-    {
-      event: '*',
-      schema: 'public',
-      table: 'app_state'
-    },
-    async () => {
 
-      const { data, error } = await supabaseClient
-        .from("app_state")
-        .select("data")
-        .eq("id", 1)
-        .single();
-
-      if(error){
-        console.error(error);
-        return;
-      }
-
-      if(data?.data){
-        db = data.data;
-        render();
-        setStatus("Aktualizováno z cloudu");
-      }
-    }
-  )
-  .subscribe();
 </script>
 
   
