@@ -46,18 +46,55 @@ aside h2{font-size:16px;margin:10px 0}.list{display:flex;flex-direction:column;g
 .dialog{background:#fff;border-radius:16px;box-shadow:0 24px 80px rgba(0,0,0,.32);width:min(900px,100%);max-height:92vh;overflow:auto;padding:18px}.dialog h2{margin:0 0 14px;font-size:20px}
 .grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}.full{grid-column:1/-1}label{font-size:13px;font-weight:700;color:#30435a}.actions{display:flex;gap:8px;justify-content:flex-end;margin-top:14px;flex-wrap:wrap}
 .small{font-size:12px;color:var(--muted)}.hidden{display:none!important}.quick-actions{display:flex;gap:6px;flex-wrap:wrap;margin-top:7px}.quick-actions button{padding:5px 7px;font-size:11px}
-@media(max-width:900px){body{overflow:auto}.layout{grid-template-columns:1fr;height:auto;overflow:visible}aside{border-right:0;border-bottom:1px solid var(--line);max-height:360px}.board-wrap{height:calc(100vh - 420px);min-height:420px}.toolbar input,.toolbar select{width:100%}}
+@media(max-width:900px){
+  ...
+}
+
+@media(max-width:700px){
+
+  #authBar{
+    flex-direction:column;
+    align-items:stretch!important;
+  }
+
+  #loginBox{
+    width:100%;
+    display:flex;
+    flex-direction:column;
+  }
+
+  #loginBox input,
+  #loginBox button,
+  #logoutBtn{
+    width:100%;
+    max-width:none!important;
+  }
+
+  #currentUserBox{
+    margin-left:0!important;
+    text-align:center;
+  }
+}
 </style>
 </head>
 <body>
 <header>
-  <div id="authBar" style="padding:10px;background:#fff;border-bottom:1px solid #ddd;display:flex;gap:10px;align-items:center;">
+  <div id="authBar" style="padding:10px;background:#fff;border-bottom:1px solid #ddd;display:flex;gap:10px;align-items:center;flex-wrap:wrap;">
+  <div id="loginBox" style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;">
+
   <input id="loginEmail" placeholder="Email" style="max-width:220px">
+  
   <input id="loginPassword" type="password" placeholder="Heslo" style="max-width:220px">
 
   <button onclick="login()">Přihlásit</button>
+
   <button onclick="register()">Registrace</button>
-  <button onclick="logout()">Odhlásit</button>
+
+</div>
+
+<button id="logoutBtn" onclick="logout()" style="display:none">
+  Odhlásit
+</button>
 
   <div id="currentUserBox" style="margin-left:auto;font-weight:bold;"></div>
 </div><h1>EL-Morrel Dispečink</h1><div class="right" id="status">Připraveno</div></header>
@@ -369,31 +406,24 @@ function currentUserDiv(){
 
   const el = document.getElementById("currentUserBox");
 
-  el.innerHTML =
-    currentUser
-      ? "Přihlášen: " + currentUser.email
-      : "Nepřihlášen";
-}
-supabaseClient.auth.getUser().then(async ({ data }) => {
-
-  currentUser = data.user;
-
-  currentUserDiv();
+  const loginBox = document.getElementById("loginBox");
+  const logoutBtn = document.getElementById("logoutBtn");
 
   if(currentUser){
 
-    document.querySelector(".layout").style.display = "";
-    document.querySelector(".toolbar").style.display = "";
+    el.innerHTML = "Přihlášen: " + currentUser.email;
 
-    await loadDb();
+    loginBox.style.display = "none";
+    logoutBtn.style.display = "";
 
   }else{
 
-    document.querySelector(".layout").style.display = "none";
-    document.querySelector(".toolbar").style.display = "none";
+    el.innerHTML = "Nepřihlášen";
 
-    setStatus("Nepřihlášen");
+    loginBox.style.display = "";
+    logoutBtn.style.display = "none";
   }
+}
 });
 supabaseClient
   .channel('app_state_changes')
