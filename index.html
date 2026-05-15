@@ -422,11 +422,58 @@ function jobCard(j,a){const worker=a?workerById(a.workerId):null,vehicle=a?vehic
 function dragJob(ev){const card=ev.target.closest(".job");ev.dataTransfer.setData("jobId",card.dataset.jobId);ev.dataTransfer.setData("assignmentId",card.dataset.assignmentId||"");ev.dataTransfer.effectAllowed="move"}
 function allowDrop(ev){ev.preventDefault();ev.currentTarget.classList.add("dragover")}
 function leaveDrop(ev){ev.currentTarget.classList.remove("dragover")}
-let lastDragEvent = null;
+let mouseX = 0;
+let mouseY = 0;
+let dragging = false;
 
-document.addEventListener("dragover", (e) => {
-  lastDragEvent = e;
+document.addEventListener("dragstart", () => {
+  dragging = true;
 });
+
+document.addEventListener("dragend", () => {
+  dragging = false;
+});
+
+document.addEventListener("mousemove", (e) => {
+  mouseX = e.clientX;
+  mouseY = e.clientY;
+});
+
+function autoScroll(){
+
+  if(dragging){
+
+    const edge = 140;
+    const speed = 35;
+
+    const wrap = document.querySelector(".board-wrap");
+
+    if(wrap){
+
+      const rect = wrap.getBoundingClientRect();
+
+      if(mouseX > rect.right - edge){
+        wrap.scrollLeft += speed;
+      }
+
+      if(mouseX < rect.left + edge){
+        wrap.scrollLeft -= speed;
+      }
+    }
+
+    if(mouseY > window.innerHeight - edge){
+      window.scrollBy(0, speed);
+    }
+
+    if(mouseY < edge){
+      window.scrollBy(0, -speed);
+    }
+  }
+
+  requestAnimationFrame(autoScroll);
+}
+
+autoScroll();
 
 function autoScrollDuringDrag(){
 
