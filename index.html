@@ -99,9 +99,15 @@ input,select,textarea{border:1px solid #cbd5e1;border-radius:8px;padding:9px;fon
   grid-template-columns:340px 1fr;
   min-height:calc(100vh - 108px);
 }
-aside{background:#fff;border-right:1px solid var(--line);padding:12px;overflow:auto}
-.tabs{display:flex;gap:6px;margin-bottom:10px;flex-wrap:wrap}.tab{background:#eef4fb;color:#24364c;padding:8px 10px;border-radius:8px;cursor:pointer;font-weight:650;font-size:13px}.tab.active{background:var(--blue);color:#fff}
-aside h2{font-size:16px;margin:10px 0}.list{display:flex;flex-direction:column;gap:8px}
+aside{
+  background:#fff;
+  border-right:1px solid var(--line);
+  padding:12px;
+  overflow:auto;
+  position:sticky;
+  top:0;
+  height:calc(100vh - 108px);
+}
 .board-wrap{
   overflow:auto;
   padding:12px;
@@ -144,17 +150,6 @@ aside h2{font-size:16px;margin:10px 0}.list{display:flex;flex-direction:column;g
     border-right:0;
     border-bottom:1px solid var(--line);
   }
-
-  .board-wrap{
-    overflow:auto;
-    height:auto;
-    padding:8px;
-  }
-
-  body{
-    overflow:auto;
-  }
-
   .board{
     min-width:980px;
   }
@@ -420,120 +415,15 @@ function jobCard(j,a){const worker=a?workerById(a.workerId):null,vehicle=a?vehic
   </div>
 ` : ""}<div class="progress"><div style="width:${Math.min(p.pct,100)}%;background:${p.color}"></div></div>${p.over?`<div class="job-meta" style="color:#991b1b;font-weight:700">Přetaženo o ${(p.actual-p.estimated).toFixed(2)} člověkodnů</div>`:""}${mismatch?`<div class="skill-note">⚠ Pracovník nemá požadovanou specializaci</div>`:""}</div>`}
 function dragJob(ev){const card=ev.target.closest(".job");ev.dataTransfer.setData("jobId",card.dataset.jobId);ev.dataTransfer.setData("assignmentId",card.dataset.assignmentId||"");ev.dataTransfer.effectAllowed="move"}
-function allowDrop(ev){ev.preventDefault();ev.currentTarget.classList.add("dragover")}
-function leaveDrop(ev){ev.currentTarget.classList.remove("dragover")}
-let mouseX = 0;
-let mouseY = 0;
-let dragging = false;
-
-document.addEventListener("dragstart", () => {
-  dragging = true;
-});
-
-document.addEventListener("dragend", () => {
-  dragging = false;
-});
-
-document.addEventListener("mousemove", (e) => {
-  mouseX = e.clientX;
-  mouseY = e.clientY;
-});
-document.addEventListener(
-  "wheel",
-  (e) => {
-
-    if(!draggingJob) return;
-
-    e.preventDefault();
-
-   document.querySelector(".board-wrap").scrollBy({
-      top: e.deltaY,
-      left: 0,
-      behavior: "auto"
-    });
-
-  },
-  { passive: false }
-);
-function autoScroll(){
-
-  if(dragging){
-
-    const edge = 260;
-const speed = 80;
-
-    const wrap = document.querySelector(".board-wrap");
-
-    if(wrap){
-
-      const rect = wrap.getBoundingClientRect();
-
-      if(mouseX > rect.right - edge){
-        wrap.scrollLeft += speed;
-      }
-
-      if(mouseX < rect.left + edge){
-        wrap.scrollLeft -= speed;
-      }
-    }
-
-    if(mouseY > window.innerHeight - edge){
-      window.scrollBy(0, speed);
-    }
-
-    if(mouseY < edge){
-      window.scrollBy(0, -speed);
-    }
-  }
-
-  requestAnimationFrame(autoScroll);
+function allowDrop(ev){
+  ev.preventDefault();
+  ev.currentTarget.classList.add("dragover");
 }
 
-autoScroll();
-
-function autoScrollDuringDrag(){
-
-  if(lastDragEvent){
-
-    const edge = 120;
-    const speed = 35;
-
-    const wrap = document.querySelector(".board-wrap");
-
-    if(wrap){
-
-      const rect = wrap.getBoundingClientRect();
-
-      if(lastDragEvent.clientX > rect.right - edge){
-        wrap.scrollLeft += speed;
-      }
-
-      if(lastDragEvent.clientX < rect.left + edge){
-        wrap.scrollLeft -= speed;
-      }
-    }
-
-    if(lastDragEvent.clientY > window.innerHeight - edge){
-      window.scrollBy(0, speed);
-    }
-
-    if(lastDragEvent.clientY < edge){
-      window.scrollBy(0, -speed);
-    }
-  }
-
-  requestAnimationFrame(autoScrollDuringDrag);
+function leaveDrop(ev){
+  ev.currentTarget.classList.remove("dragover");
 }
 
-autoScrollDuringDrag();
-
-document.addEventListener("dragend", () => {
-  lastDragEvent = null;
-});
-
-document.addEventListener("dragend", () => {
-  clearInterval(autoScrollInterval);
-});
 async function dropJob(ev){
 
   if(!canEdit){
