@@ -143,12 +143,20 @@ aside{
   .layout{
     display:flex;
     flex-direction:column;
-    height:auto;
+    min-height:auto;
   }
 
   aside{
     border-right:0;
     border-bottom:1px solid var(--line);
+    max-height:35vh;
+    overflow:auto;
+  }
+
+  .board-wrap{
+    height:65vh;
+  }
+}
   }
   .board{
     min-width:980px;
