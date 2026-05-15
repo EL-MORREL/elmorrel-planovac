@@ -117,11 +117,17 @@ aside{
   padding:12px;
   width:100%;
   min-width:0;
+
+  -webkit-overflow-scrolling:touch;
+  touch-action:pan-x pan-y pinch-zoom;
+
   overscroll-behavior-x:contain;
 }
 .board{
   min-width:max-content;
   width:max-content;
+  transform:scale(0.92);
+transform-origin:top left;
   background:#fff;
   border:1px solid var(--line);
   border-radius:14px;
@@ -133,7 +139,19 @@ aside{
   display:grid;
   grid-template-columns:280px repeat(7,220px);
 }
-.head{position:sticky;top:0;z-index:10;background:#f8fbff}.head>div{padding:12px;border-right:1px solid var(--line);border-bottom:1px solid var(--line);font-weight:800;text-align:center}
+.head{
+  position:sticky;
+  top:0;
+  z-index:30;
+  background:#f8fbff;
+}
+  .head > div{
+  position:sticky;
+  top:0;
+  background:#f8fbff;
+  z-index:30;
+}
+  .head>div{padding:12px;border-right:1px solid var(--line);border-bottom:1px solid var(--line);font-weight:800;text-align:center}
   .head > div:first-child{
   position:sticky;
   left:0;
@@ -149,7 +167,7 @@ aside{
   font-weight:400;
   position:sticky;
   left:0;
-  z-index:5;
+  z-index:25;
 }
   .sub{
   font-size:12px;
