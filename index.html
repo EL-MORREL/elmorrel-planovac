@@ -538,13 +538,13 @@ function jobCard(j,a){
 
   const otherCrew = worker
   ? crewNames.filter(n => n !== worker.title)
-  : crewNames;,
+  : crewNames;
 
   const mismatch = 
     a && 
     worker &&
     !workerHasSkill(worker,j.skill);
-  const p = jobProgress(j),
+  const p = jobProgress(j);
   const badgeClass = 
     p.over
       ?"red"
@@ -567,7 +567,8 @@ function jobCard(j,a){
     </button>
   </div>
 ` : ""}<div class="progress"><div style="width:${Math.min(p.pct,100)}%;background:${p.color}"></div></div>${p.over?`<div class="job-meta" style="color:#991b1b;font-weight:700">Přetaženo o ${(p.actual-p.estimated).toFixed(2)} člověkodnů</div>`:""}
-${mismatch?`<div class="skill-note">⚠ Pracovník nemá požadovanou specializaci</div>`:""}</div>`}
+${mismatch?`<div class="skill-note">⚠ Pracovník nemá požadovanou specializaci</div>`:""}</div>`;
+}
 function dragJob(ev){const card=ev.target.closest(".job");ev.dataTransfer.setData("jobId",card.dataset.jobId);ev.dataTransfer.setData("assignmentId",card.dataset.assignmentId||"");ev.dataTransfer.effectAllowed="move"}
 function allowDrop(ev){
   ev.preventDefault();
