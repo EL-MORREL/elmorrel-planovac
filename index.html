@@ -2,7 +2,9 @@
 <html lang="cs">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=yes">
+<meta
+  name="viewport"
+  content="width=device-width, initial-scale=1, user-scalable=yes">
 <title>EL-Morrel Dispečink</title>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
 
@@ -21,7 +23,6 @@ body{
   font-family:Segoe UI,Arial,sans-serif;
   background:var(--bg);
   color:var(--text);
-  overflow:auto;
 }
 header{
   background:var(--blue);
@@ -104,7 +105,6 @@ aside h2{font-size:16px;margin:10px 0}.list{display:flex;flex-direction:column;g
 .board-wrap{
   overflow:auto;
   padding:12px;
-  scroll-behavior:smooth;
 }
 .board{
   min-width:1960px;
@@ -422,61 +422,50 @@ function jobCard(j,a){const worker=a?workerById(a.workerId):null,vehicle=a?vehic
 function dragJob(ev){const card=ev.target.closest(".job");ev.dataTransfer.setData("jobId",card.dataset.jobId);ev.dataTransfer.setData("assignmentId",card.dataset.assignmentId||"");ev.dataTransfer.effectAllowed="move"}
 function allowDrop(ev){ev.preventDefault();ev.currentTarget.classList.add("dragover")}
 function leaveDrop(ev){ev.currentTarget.classList.remove("dragover")}
-let autoScrollInterval = null;
 let lastDragEvent = null;
+
 document.addEventListener("dragover", (e) => {
+  lastDragEvent = e;
+});
 
-  const wrap = document.querySelector(".board-wrap");
+function autoScrollDuringDrag(){
 
-  if(!wrap) return;
+  if(lastDragEvent){
 
-  const rect = wrap.getBoundingClientRect();
+    const edge = 120;
+    const speed = 35;
 
-  const edgeSize = 80;
-  const scrollSpeed = 18;
+    const wrap = document.querySelector(".board-wrap");
 
-  clearInterval(autoScrollInterval);
+    if(wrap){
 
-  autoScrollInterval = setInterval(() => {
+      const rect = wrap.getBoundingClientRect();
 
-   if(!lastDragEvent) return;
+      if(lastDragEvent.clientX > rect.right - edge){
+        wrap.scrollLeft += speed;
+      }
 
-  const wrap = document.querySelector(".board-wrap");
-
-  const edgeSize = 120;
-  const scrollSpeed = 40;
-
-  if(wrap){
-
-    const rect = wrap.getBoundingClientRect();
-
-    if(lastDragEvent.clientX > rect.right - edgeSize){
-      wrap.scrollLeft += scrollSpeed;
+      if(lastDragEvent.clientX < rect.left + edge){
+        wrap.scrollLeft -= speed;
+      }
     }
 
-    if(lastDragEvent.clientX < rect.left + edgeSize){
-      wrap.scrollLeft -= scrollSpeed;
+    if(lastDragEvent.clientY > window.innerHeight - edge){
+      window.scrollBy(0, speed);
+    }
+
+    if(lastDragEvent.clientY < edge){
+      window.scrollBy(0, -speed);
     }
   }
 
-  if(lastDragEvent.clientX > window.innerWidth - edgeSize){
-    window.scrollBy(scrollSpeed, 0);
-  }
+  requestAnimationFrame(autoScrollDuringDrag);
+}
 
-  if(lastDragEvent.clientX < edgeSize){
-    window.scrollBy(-scrollSpeed, 0);
-  }
+autoScrollDuringDrag();
 
-  if(lastDragEvent.clientY > window.innerHeight - edgeSize){
-    window.scrollBy(0, scrollSpeed);
-  }
-
-  if(lastDragEvent.clientY < edgeSize){
-    window.scrollBy(0, -scrollSpeed);
-  }
-
-}, 16);
-
+document.addEventListener("dragend", () => {
+  lastDragEvent = null;
 });
 
 document.addEventListener("dragend", () => {
