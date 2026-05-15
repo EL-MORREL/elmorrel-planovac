@@ -17,9 +17,13 @@ const supabaseClient = supabase.createClient(
 <style>
 :root{--blue:#0f6cbd;--blue2:#0b5cab;--bg:#f4f7fb;--line:#dbe3ef;--text:#152033;--muted:#607086;--red:#dc2626;--orange:#d97706;--green:#16a34a;--shadow:0 8px 24px rgba(15,35,65,.10)}
 *{box-sizing:border-box}
-html,body{height:100%;overflow:auto;}
+html,body{
+  height:100%;
+}
+
 body{
   margin:0;
+  overflow:auto;
   font-family:Segoe UI,Arial,sans-serif;
   background:var(--bg);
   color:var(--text);
@@ -113,6 +117,7 @@ aside{
   padding:12px;
   width:100%;
   min-width:0;
+  overscroll-behavior-x:contain;
 }
 .board{
   min-width:max-content;
@@ -126,7 +131,7 @@ aside{
 }
 .head,.row{
   display:grid;
-  grid-template-columns:280px repeat(7,minmax(220px,1fr));
+  grid-template-columns:280px repeat(7,220px);
 }
 .head{position:sticky;top:0;z-index:10;background:#f8fbff}.head>div{padding:12px;border-right:1px solid var(--line);border-bottom:1px solid var(--line);font-weight:800;text-align:center}
   .head > div:first-child{
@@ -171,13 +176,13 @@ aside{
 .small{font-size:12px;color:var(--muted)}.hidden{display:none!important}.quick-actions{display:flex;gap:6px;flex-wrap:wrap;margin-top:7px}.quick-actions button{padding:5px 7px;font-size:11px}
 @media(max-width:900px){
 
-  .layout{
+ .layout{
     display:flex;
     flex-direction:column;
     min-height:auto;
   }
 
- aside{
+  aside{
     position:relative;
     top:auto;
     height:auto;
@@ -187,56 +192,14 @@ aside{
     overflow:auto;
     -webkit-overflow-scrolling:touch;
     touch-action:pan-x pan-y pinch-zoom;
+    width:100%;
   }
 
   .board{
-    min-width:980px;
-  }
-
-  .head,
-  .row{
-    grid-template-columns:140px repeat(7,120px);
-  }
-
-  .name-cell{
-    min-height:110px;
-    padding:8px;
-    font-size:13px;
-  }
-  .cell{
-    min-height:110px;
-    padding:4px;
-  }
-
-  .job{
-    padding:5px;
-    margin-bottom:5px;
-  }
-
-  .job-title{
-    font-size:11px;
-  }
-
-  .job-meta{
-    font-size:10px;
-  }
-
-  .badge{
-    font-size:9px;
-    padding:1px 4px;
-  }
-
-  .capacity{
-    font-size:10px;
-  }
-
-  .head > div{
-    padding:6px;
-    font-size:11px;
-  }
-  touch-action:auto;
+  width:max-content;
+  min-width:max-content;
 }
-
+}
 @media(max-width:700px){
 
   #authBar{
