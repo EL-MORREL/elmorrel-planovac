@@ -96,7 +96,7 @@ input,select,textarea{border:1px solid #cbd5e1;border-radius:8px;padding:9px;fon
 .toolbar input,.toolbar select{width:auto;min-width:190px}
 .layout{
   display:grid;
-  grid-template-columns:340px 1fr;
+  grid-template-columns:340px minmax(0,1fr);
   min-height:calc(100vh - 108px);
 }
 aside{
@@ -112,6 +112,7 @@ aside{
   overflow:auto;
   padding:12px;
   width:100%;
+  min-width:0;
 }
 .board{
   min-width:max-content;
@@ -176,15 +177,16 @@ aside{
     min-height:auto;
   }
 
-  aside{
-    border-right:0;
-    border-bottom:1px solid var(--line);
-    max-height:35vh;
-    overflow:auto;
+ aside{
+    position:relative;
+    top:auto;
+    height:auto;
   }
 
   .board-wrap{
-    height:65vh;
+    overflow:auto;
+    -webkit-overflow-scrolling:touch;
+    touch-action:pan-x pan-y pinch-zoom;
   }
 
   .board{
@@ -232,6 +234,7 @@ aside{
     padding:6px;
     font-size:11px;
   }
+  touch-action:auto;
 }
 
 @media(max-width:700px){
@@ -941,28 +944,33 @@ async function importData(e){
 
   e.target.value = "";
 }
+let realtimeChannel = null;
+
 function startRealtime(){
 
   if(!currentUser) return;
 
-  supabaseClient.removeAllChannels();
+  if(realtimeChannel){
+    supabaseClient.removeChannel(realtimeChannel);
+  }
 
-  supabaseClient
-    .channel('app_state_changes')
+  realtimeChannel = supabaseClient
+    .channel("app_state_changes")
     .on(
-      'postgres_changes',
+      "postgres_changes",
       {
-        event: '*',
-        schema: 'public',
-        table: 'app_state',
-        filter: `id=eq.1`
+        event: "*",
+        schema: "public",
+        table: "app_state"
       },
-      async () => {
+      async (payload) => {
+
+        console.log("Realtime změna", payload);
 
         const { data, error } = await supabaseClient
           .from("app_state")
           .select("data")
-          .eq("id", 1)
+          .eq("id",1)
           .single();
 
         if(error){
@@ -977,11 +985,9 @@ function startRealtime(){
         }
       }
     )
-    .subscribe((status) => {
-      console.log("Realtime:", status);
+    .subscribe((status)=>{
+      console.log("Realtime status:", status);
     });
-
-  realtimeSubscribed = true;
 }
 async function register(){
   const email = loginEmail.value;
