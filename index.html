@@ -446,7 +446,7 @@ document.addEventListener(
 
     e.preventDefault();
 
-    window.scrollBy({
+   document.querySelector(".board-wrap").scrollBy({
       top: e.deltaY,
       left: 0,
       behavior: "auto"
