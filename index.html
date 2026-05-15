@@ -438,7 +438,23 @@ document.addEventListener("mousemove", (e) => {
   mouseX = e.clientX;
   mouseY = e.clientY;
 });
+document.addEventListener(
+  "wheel",
+  (e) => {
 
+    if(!draggingJob) return;
+
+    e.preventDefault();
+
+    window.scrollBy({
+      top: e.deltaY,
+      left: 0,
+      behavior: "auto"
+    });
+
+  },
+  { passive: false }
+);
 function autoScroll(){
 
   if(dragging){
