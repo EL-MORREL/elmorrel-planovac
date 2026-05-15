@@ -126,14 +126,14 @@ aside{
 .board{
   min-width:max-content;
   width:max-content;
-  transform:scale(0.92);
-transform-origin:top left;
+
   background:#fff;
   border:1px solid var(--line);
   border-radius:14px;
   overflow:visible;
   box-shadow:var(--shadow);
-  transform-origin: top left;
+
+  transform-origin:top left;
 }
 .head,.row{
   display:grid;
@@ -243,6 +243,98 @@ transform-origin:top left;
     text-align:center;
   }
 }
+@media(max-width:1200px){
+
+  .board{
+    transform:scale(0.82);
+  }
+
+  .board-wrap{
+    min-height:1200px;
+  }
+}
+
+@media(max-width:900px){
+
+  .board{
+    transform:scale(0.68);
+  }
+
+  .board-wrap{
+    min-height:1000px;
+  }
+
+  .head,.row{
+    grid-template-columns:180px repeat(7,140px);
+  }
+
+  .cell,
+  .name-cell{
+    min-height:110px;
+  }
+
+  .job{
+    padding:5px;
+  }
+
+  .job-title{
+    font-size:11px;
+  }
+
+  .job-meta{
+    font-size:10px;
+  }
+
+  .badge{
+    font-size:9px;
+    padding:1px 4px;
+  }
+}
+
+@media(max-width:600px){
+
+  .board{
+    transform:scale(0.52);
+  }
+
+  .board-wrap{
+    min-height:850px;
+  }
+
+  .head,.row{
+    grid-template-columns:140px repeat(7,110px);
+  }
+
+  .cell,
+  .name-cell{
+    min-height:90px;
+    padding:4px;
+  }
+
+  .job{
+    margin-bottom:4px;
+    border-radius:7px;
+  }
+
+  .job-title{
+    font-size:9px;
+    line-height:1.1;
+  }
+
+  .job-meta{
+    font-size:8px;
+    line-height:1.1;
+  }
+
+  .badge{
+    font-size:7px;
+    padding:1px 3px;
+  }
+
+  .progress{
+    height:5px;
+  }
+}  
 </style>
 </head>
 <body>
