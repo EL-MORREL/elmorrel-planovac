@@ -113,8 +113,8 @@ aside{
   padding:12px;
 }
 .board{
-  min-width:1960px;
-  width:max-content;
+  min-width:100%;
+  width:100%;
   background:#fff;
   border:1px solid var(--line);
   border-radius:14px;
@@ -122,7 +122,10 @@ aside{
   box-shadow:var(--shadow);
   transform-origin: top left;
 }
-.head,.row{display:grid;grid-template-columns:240px repeat(7,240px)}
+.head,.row{
+  display:grid;
+  grid-template-columns:280px repeat(7,minmax(220px,1fr));
+}
 .head{position:sticky;top:0;z-index:10;background:#f8fbff}.head>div{padding:12px;border-right:1px solid var(--line);border-bottom:1px solid var(--line);font-weight:800;text-align:center}
   .head > div:first-child{
   position:sticky;
