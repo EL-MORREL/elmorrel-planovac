@@ -417,7 +417,7 @@ aside{
 </label>
 <label>Počet dní<input id="j_days" type="number" min="0" step="0.5" value="1" oninput="syncEstimateFromDaysPeople()"></label>
 <label>Počet pracovníků<input id="j_people" type="number" min="0" step="1" value="1" oninput="syncEstimateFromDaysPeople()"></label>
-<label>Odhad hodin<input id="j_estimated" type="number" min="0" step="0.5" value="10000"></label>
+<label>Odhad hodin<input id="j_estimated" type="number" min="0" step="0.5" value="10"></label>
 <label>Hodin Pracovníka<input id="j_load" type="number" min="0" max="24" step="0.5" value="10"></label>
 <label>Hodin vozidla hod.<input id="j_vehicle_load" type="number" min="0" max="24" step="0.5" value="10"></label>
 <label>Čas od
@@ -721,7 +721,8 @@ j_lead_worker.innerHTML =
 
 j_lead_worker.value = j?.leadWorkerId || "";j_priority.value=j?.priority||"Střední";j_skill.value=j?.skill||"Bez požadavku";j_state.value=j?.state||"Nová";j_days.value=j?.days||1;j_people.value=j?.people||1;j_estimated.value = j?.estimated || ((j?.days || 1) * (j?.people || 1) * 10);
 
-j_load.value = j?.load || 10;;j_load.value=j?.load||0;j_vehicle_load.value=j?.vehicleLoad||0;j_from.value=j?.timeFrom||"";j_to.value=j?.timeTo||"";j_note.value=j?.note||"";deleteJobBtn.classList.toggle("hidden",!j);duplicateJobBtn.classList.toggle("hidden",!j);completeJobBtn.classList.toggle("hidden",!j);invoiceJobBtn.classList.toggle("hidden",!j);if(j){
+j_load.value = j?.load || 10;
+j_vehicle_load.value = j?.vehicleLoad || 10;j_from.value=j?.timeFrom||"";j_to.value=j?.timeTo||"";j_note.value=j?.note||"";deleteJobBtn.classList.toggle("hidden",!j);duplicateJobBtn.classList.toggle("hidden",!j);completeJobBtn.classList.toggle("hidden",!j);invoiceJobBtn.classList.toggle("hidden",!j);if(j){
   const p = jobProgress(j);
 
   jobStats.innerHTML = `
@@ -770,15 +771,15 @@ function getJobPayload(){
     updatedBy:currentUser?.email || "neznámý"
   }
 }
-  function syncHoursFromTime(){
+ function syncHoursFromTime(){
 
   if(!j_from.value || !j_to.value) return;
 
   const [fh,fm] = j_from.value.split(":").map(Number);
   const [th,tm] = j_to.value.split(":").map(Number);
 
-  const from = fh + fm/60;
-  const to = th + tm/60;
+  const from = fh + fm / 60;
+  const to = th + tm / 60;
 
   let diff = to - from;
 
@@ -788,8 +789,10 @@ function getJobPayload(){
 
   j_load.value = diff.toFixed(1);
   j_vehicle_load.value = diff.toFixed(1);
-}if(diff > 10){
-  setStatus("Pozor: překročen standard 10 hodin");
+
+  if(diff > 10){
+    setStatus("Pozor: překročen standard 10 hodin");
+  }
 }
 async function saveJob(){
 
@@ -956,7 +959,7 @@ async function deleteWorker(){
 
   render();
 }
-function openVehicle(id){selectedVehicleId=id||null;const v=id?vehicleById(id):null;vehicleModalTitle.textContent=v?"Detail vozidla":"Nové vozidlo";v_title.value=v?.title||"";v_spz.value=v?.spz||"";v_type.value=v?.type||"";v_capacity.value=v?.capacity||100;v_note.value=v?.note||"";deleteVehicleBtn.classList.toggle("hidden",!v);openModal("vehicleModal")}
+function openVehicle(id){selectedVehicleId=id||null;const v=id?vehicleById(id):null;vehicleModalTitle.textContent=v?"Detail vozidla":"Nové vozidlo";v_title.value=v?.title||"";v_spz.value=v?.spz||"";v_type.value=v?.type||"";v_capacity.value=v?.capacity||10;v_note.value=v?.note||"";deleteVehicleBtn.classList.toggle("hidden",!v);openModal("vehicleModal")}
 async function saveVehicle(){
 
   if(!canEdit){
