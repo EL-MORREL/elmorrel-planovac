@@ -592,6 +592,58 @@ function usedCapacity(row,ass){
     ? ass.reduce((s,a)=>s+Number(a.load||10),0)
     : ass.reduce((s,a)=>s+Number(a.vehicleLoad||10),0)
 }
+function getDayNote(workerId,date){
+
+  if(!db.notes){
+    db.notes = [];
+  }
+
+  return db.notes.find(n =>
+    Number(n.workerId) === Number(workerId) &&
+    n.date === date
+  );
+}
+
+async function editDayNote(workerId,date){
+
+  if(!canEdit){
+    alert("Nemáte oprávnění");
+    return;
+  }
+
+  if(!db.notes){
+    db.notes = [];
+  }
+
+  const existing = getDayNote(workerId,date);
+
+  const text = prompt(
+    "Poznámka pro den:",
+    existing?.text || ""
+  );
+
+  if(text === null){
+    return;
+  }
+
+  if(existing){
+
+    existing.text = text;
+
+  }else{
+
+    db.notes.push({
+      id: Date.now(),
+      workerId,
+      date,
+      text
+    });
+  }
+
+  await saveDb();
+
+  render();
+}
 function render(){renderHeader();renderSide();renderBoard()}
 function renderHeader(){const days=["Pracovník / vozidlo"];for(let i=0;i<7;i++)days.push(czDate(addDays(weekStart,i)));head.innerHTML=days.map(d=>`<div>${esc(d)}</div>`).join("")}
 function renderSide(){const assigned=new Set(db.assignments.map(a=>Number(a.jobId))),filter=jobFilter.value;jobsTitle.textContent=filter==="archive"?"Archiv zakázek":filter==="to_invoice"?"Čeká na fakturaci":filter==="overrun"?"Přetažené zakázky":"Zakázky";
@@ -698,38 +750,6 @@ function renderBoard(){
     return html;
 
   }).join("");
-}
-
-async function editDayNote(workerId,date){
-
-  const existing = getDayNote(workerId,date);
-
-  const text = prompt(
-    "Poznámka na den:",
-    existing?.text || ""
-  );
-
-  if(text === null) return;
-
-  if(existing){
-
-    existing.text = text;
-
-  }else{
-
-    db.notes.push({
-      id: nextId(db.notes),
-      workerId,
-      date,
-      text
-    });
-  }
-
-  db.notes = db.notes.filter(n => n.text.trim());
-
-  await saveDb();
-
-  render();
 }
 function jobCard(j,a){
   
