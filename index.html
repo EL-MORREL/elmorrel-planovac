@@ -719,7 +719,7 @@ j_lead_worker.innerHTML =
     </option>`
   ).join("");
 
-j_lead_worker.value = j?.leadWorkerId || "";j_priority.value=j?.priority||"Střední";j_skill.value=j?.skill||"Bez požadavku";j_state.value=j?.state||"Nová";j_days.value=j?.days||1;j_people.value=j?.people||1;j_estimated.value=j?.estimated||((j?.days||1)*(j?.people||1)*10);j_load.value=j?.load||0;j_vehicle_load.value=j?.vehicleLoad||0;j_to.value=j?.timeFrom||"";j_to.value=j?.timeTo||"";j_note.value=j?.note||"";deleteJobBtn.classList.toggle("hidden",!j);duplicateJobBtn.classList.toggle("hidden",!j);completeJobBtn.classList.toggle("hidden",!j);invoiceJobBtn.classList.toggle("hidden",!j);if(j){
+j_lead_worker.value = j?.leadWorkerId || "";j_priority.value=j?.priority||"Střední";j_skill.value=j?.skill||"Bez požadavku";j_state.value=j?.state||"Nová";j_days.value=j?.days||1;j_people.value=j?.people||1;j_estimated.value=j?.estimated||((j?.days||1)*(j?.people||1)*10);j_load.value=j?.load||0;j_vehicle_load.value=j?.vehicleLoad||0;j_from.value=j?.timeFrom||"";j_to.value=j?.timeTo||"";j_note.value=j?.note||"";deleteJobBtn.classList.toggle("hidden",!j);duplicateJobBtn.classList.toggle("hidden",!j);completeJobBtn.classList.toggle("hidden",!j);invoiceJobBtn.classList.toggle("hidden",!j);if(j){
   const p = jobProgress(j);
 
   jobStats.innerHTML = `
@@ -755,10 +755,10 @@ function getJobPayload(){
     priority:j_priority.value,
     skill:j_skill.value,
     state:j_state.value,
-    days:Number(j_days.value||10),
-    people:Number(j_people.value||10),
-    estimated:Number(j_estimated.value||10),
-    load:Number(j_load.value||0),
+    days:Number(j_days.value||1),
+    people:Number(j_people.value||1),
+    estimated:Number(j_estimated.value||1),
+    load:Number(j_load.value||10),
     vehicleLoad:Number(j_vehicle_load.value||10),
     timeFrom:j_from.value,
     timeTo:j_to.value,
