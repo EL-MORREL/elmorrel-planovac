@@ -418,8 +418,8 @@ aside{
 <label>Počet dní<input id="j_days" type="number" min="0" step="0.5" value="1" oninput="syncEstimateFromDaysPeople()"></label>
 <label>Počet pracovníků<input id="j_people" type="number" min="0" step="1" value="1" oninput="syncEstimateFromDaysPeople()"></label>
 <label>Odhad hodin<input id="j_estimated" type="number" min="0" step="0.5" value="10000"></label>
-<label>Hodin Pracovníka<input id="j_load" type="number" min="0" max="24" step="0,5" value="10"></label>
-<label>Hodin vozidla hod.<input id="j_vehicle_load" type="number" min="0" max="24" step="0,5" value="10"></label>
+<label>Hodin Pracovníka<input id="j_load" type="number" min="0" max="24" step="0.5" value="10"></label>
+<label>Hodin vozidla hod.<input id="j_vehicle_load" type="number" min="0" max="24" step="0.5" value="10"></label>
 <label>Čas od<input id="j_from" type="time"></label><label>Čas do<input id="j_to" type="time"></label>
 <label class="full">Poznámka<textarea id="j_note" rows="4"></textarea></label>
 </div><div id="jobStats" class="small" style="margin-top:10px"></div>
@@ -436,7 +436,7 @@ aside{
 </div><div class="actions"><button class="secondary" onclick="closeModal('vehicleModal')">Zavřít</button><button class="danger" id="deleteVehicleBtn" onclick="deleteVehicle()">Smazat</button><button onclick="saveVehicle()">Uložit</button></div></div></div>
 
 <div id="assignModal" class="modal"><div class="dialog"><h2>Přiřazení zakázky</h2><p class="small">Zakázku můžeš přiřadit pracovníkovi i vozidlu. Nesoulad odbornosti se jen označí, neblokuje.</p>
-<div class="grid"><label>Zakázka<input id="a_job_title" disabled></label><label>Datum<input id="a_date" type="date"></label><label>Pracovník<select id="a_worker"></select></label><label>Vozidlo<select id="a_vehicle"></select></label><label>Vytížení pracovníka hod.<input id="a_load" type="number" min="0" max="24" step="0,5"></label><label>Vytížení vozidla hod.<input id="a_vehicle_load" type="number" min="0" max="24" step="0,5"></label></div>
+<div class="grid"><label>Zakázka<input id="a_job_title" disabled></label><label>Datum<input id="a_date" type="date"></label><label>Pracovník<select id="a_worker"></select></label><label>Vozidlo<select id="a_vehicle"></select></label><label>Vytížení pracovníka hod.<input id="a_load" type="number" min="0" max="24" step="0.5"></label><label>Vytížení vozidla hod.<input id="a_vehicle_load" type="number" min="0" max="24" step="0.5"></label></div>
 <div class="actions"><button class="secondary" onclick="closeModal('assignModal')">Zavřít</button><button class="danger" onclick="unassignCurrent()">Odebrat z plánu</button><button onclick="saveAssignmentFromModal()">Uložit přiřazení</button></div></div></div>
 
 <script>
@@ -532,7 +532,9 @@ function plannedUnits(jobId){
     .filter(a=>Number(a.jobId)===Number(jobId))
     .reduce((s,a)=>s+Number(a.load||0),0)
 }
-function jobProgress(j){const estimated=Math.max(Number(j.estimated||0),0),actual=plannedUnits(j.id),pct=estimated>0?Math.round((actual/estimated)*10):0;let color="#16a34a";if(pct>10)color="#dc2626";else if(pct>=8,5)color="#d97706";return{estimated,actual,pct,color,over:estimated>0&&actual>estimated}}
+function jobProgress(j){const estimated=Math.max(Number(j.estimated||0),0),actual=plannedUnits(j.id),pct = estimated > 0
+  ? Math.round((actual / estimated) * 100)
+  : 0;let color="#16a34a";if(pct>100)color="#dc2626";else if(pct>=85)color="#d97706";return{estimated,actual,pct,color,over:estimated>0&&actual>estimated}}
 function isArchiveState(j){return["Dokončeno","Vyfakturováno","Storno"].includes(j.state)}
 function matchesSearch(j){const q=document.getElementById("search").value.trim().toLowerCase();if(!q)return true;return[j.title,j.address,j.contact,j.phone,j.note,j.state,j.skill].join(" ").toLowerCase().includes(q)}
 function matchesFilter(j){const f=document.getElementById("jobFilter").value,p=jobProgress(j);if(f==="active")return!isArchiveState(j);if(f==="archive")return isArchiveState(j);if(f==="to_invoice")return j.state==="Dokončeno";if(f==="overrun")return p.over;return true}
@@ -686,8 +688,18 @@ async function dropJob(ev){
   render();
 }
 
-function syncEstimateFromDaysPeople(){j_estimated.value=(Number(j_days.value||0)*Number(j_people.value||0)).toString()}
-function openJob(id){selectedJobId=id||null;const j=id?jobById(id):null;jobModalTitle.textContent=j?"Detail zakázky":"Nová zakázka";j_title.value=j?.title||"";j_address.value=j?.address||"";j_contact.value=j?.contact||"";j_phone.value=j?.phone||j_lead_worker.innerHTML =
+function syncEstimateFromDaysPeople(){
+
+  j_estimated.value =
+    (
+      Number(j_days.value || 0) *
+      Number(j_people.value || 0) *
+      10
+    ).toString();
+}
+function openJob(id){selectedJobId=id||null;const j=id?jobById(id):null;jobModalTitle.textContent=j?"Detail zakázky":"Nová zakázka";j_title.value=j?.title||"";j_address.value=j?.address||"";j_contact.value=j?.contact||"";j_phone.value = j?.phone || "";
+
+j_lead_worker.innerHTML =
   `<option value="">Bez technika</option>` +
   db.workers.map(w =>
     `<option value="${w.id}">
@@ -695,7 +707,7 @@ function openJob(id){selectedJobId=id||null;const j=id?jobById(id):null;jobModal
     </option>`
   ).join("");
 
-j_lead_worker.value = j?.leadWorkerId || "";"";j_priority.value=j?.priority||"Střední";j_skill.value=j?.skill||"Bez požadavku";j_state.value=j?.state||"Nová";j_days.value=j?.days||1;j_people.value=j?.people||1;j_estimated.value=j?.estimated||((j?.days||1)*(j?.people||1));j_load.value=j?.load||0;j_vehicle_load.value=j?.vehicleLoad||0;j_from.value=j?.timeFrom||"";j_to.value=j?.timeTo||"";j_note.value=j?.note||"";deleteJobBtn.classList.toggle("hidden",!j);duplicateJobBtn.classList.toggle("hidden",!j);completeJobBtn.classList.toggle("hidden",!j);invoiceJobBtn.classList.toggle("hidden",!j);if(j){
+j_lead_worker.value = j?.leadWorkerId || ""; "";"";j_priority.value=j?.priority||"Střední";j_skill.value=j?.skill||"Bez požadavku";j_state.value=j?.state||"Nová";j_days.value=j?.days||1;j_people.value=j?.people||1;j_estimated.value=j?.estimated||((j?.days||1)*(j?.people||1));j_load.value=j?.load||0;j_vehicle_load.value=j?.vehicleLoad||0;j_from.value=j?.timeFrom||"";j_to.value=j?.timeTo||"";j_note.value=j?.note||"";deleteJobBtn.classList.toggle("hidden",!j);duplicateJobBtn.classList.toggle("hidden",!j);completeJobBtn.classList.toggle("hidden",!j);invoiceJobBtn.classList.toggle("hidden",!j);if(j){
   const p = jobProgress(j);
 
   jobStats.innerHTML = `
