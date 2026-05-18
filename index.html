@@ -210,14 +210,31 @@ aside{
 .badge{font-size:11px;background:rgba(255,255,255,.75);border:1px solid rgba(0,0,0,.08);border-radius:99px;padding:2px 6px}.badge.red{background:#fee2e2;color:#991b1b}.badge.orange{background:#ffedd5;color:#9a3412}.badge.green{background:#dcfce7;color:#166534}.badge.skill{background:#e0f2fe;color:#075985}.badge.warn{background:#fee2e2;color:#991b1b;font-weight:800}
 .progress{height:8px;border-radius:99px;background:#e5e7eb;overflow:hidden;margin-top:7px}.progress>div{height:100%;border-radius:99px}.skill-note{font-size:12px;color:#991b1b;font-weight:700;margin-top:5px}
 .day-note{
-  margin-top:6px;
+  margin-top:4px;
   padding:4px 6px;
   border-radius:6px;
-  background:#fff7ed;
-  border-left:3px solid #f59e0b;
+  background:#fff7d6;
   font-size:11px;
-  line-height:1.2;
-} 
+
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  gap:6px;
+}
+
+.note-delete{
+  background:#dc2626;
+  color:white;
+  border:none;
+  border-radius:4px;
+  cursor:pointer;
+  font-size:10px;
+  padding:1px 5px;
+}
+
+.note-delete:hover{
+  background:#b91c1c;
+}
 .empty{padding:12px;color:var(--muted);background:#f8fafc;border:1px dashed #cbd5e1;border-radius:10px;font-size:13px}
 .modal{display:none;position:fixed;inset:0;background:rgba(15,23,42,.58);z-index:80;align-items:center;justify-content:center;padding:18px}.modal.open{display:flex}
 .dialog{background:#fff;border-radius:16px;box-shadow:0 24px 80px rgba(0,0,0,.32);width:min(900px,100%);max-height:92vh;overflow:auto;padding:18px}.dialog h2{margin:0 0 14px;font-size:20px}
@@ -632,6 +649,25 @@ async function editDayNote(workerId,date){
 
   render();
 }
+async function deleteDayNote(noteId){
+
+  if(!canEdit){
+    alert("Nemáte oprávnění");
+    return;
+  }
+
+  if(!confirm("Smazat poznámku?")){
+    return;
+  }
+
+  db.notes = db.notes.filter(
+    n => Number(n.id) !== Number(noteId)
+  );
+
+  await saveDb();
+
+  render();
+}
 function render(){renderHeader();renderSide();renderBoard()}
 function renderHeader(){const days=["Pracovník / vozidlo"];for(let i=0;i<7;i++)days.push(czDate(addDays(weekStart,i)));head.innerHTML=days.map(d=>`<div>${esc(d)}</div>`).join("")}
 function renderSide(){const assigned=new Set(db.assignments.map(a=>Number(a.jobId))),filter=jobFilter.value;jobsTitle.textContent=filter==="archive"?"Archiv zakázek":filter==="to_invoice"?"Čeká na fakturaci":filter==="overrun"?"Přetažené zakázky":"Zakázky";
@@ -714,11 +750,17 @@ function renderBoard(){
 
 notes.forEach(note => {
 
-  html += `
-    <div class="day-note">
-      📝 ${esc(note.text)}
-    </div>
-  `;
+ html += `
+  <div class="day-note">
+    <span>📝 ${esc(note.text)}</span>
+
+    <button
+      class="note-delete"
+      onclick="deleteDayNote(${note.id})">
+      ✕
+    </button>
+  </div>
+`;
 });
       ass.forEach(a => {
 
