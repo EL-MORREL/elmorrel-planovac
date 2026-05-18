@@ -728,7 +728,7 @@ j_vehicle_load.value = j?.vehicleLoad || 10;j_from.value=j?.timeFrom||"";j_to.va
   jobStats.innerHTML = `
     Odhad: <b>${p.estimated}</b> hodin ·
     Naplánováno: <b>${p.actual.toFixed(1)}</b> ·
-    Využití: <b>${p.pct}%</b>
+    Zbývá: <b>${(p.estimated - p.actual).toFixed(1)}</b> hod.
     ${p.over ? " · <b style='color:#b91c1c'>PŘETAŽENO</b>" : ""}
   `;
 
