@@ -592,13 +592,13 @@ function usedCapacity(row,ass){
     ? ass.reduce((s,a)=>s+Number(a.load||10),0)
     : ass.reduce((s,a)=>s+Number(a.vehicleLoad||10),0)
 }
-function getDayNote(workerId,date){
+function getDayNotes(workerId,date){
 
   if(!db.notes){
     db.notes = [];
   }
 
-  return db.notes.find(n =>
+  return db.notes.filter(n =>
     Number(n.workerId) === Number(workerId) &&
     n.date === date
   );
@@ -615,30 +615,18 @@ async function editDayNote(workerId,date){
     db.notes = [];
   }
 
-  const existing = getDayNote(workerId,date);
+  const text = prompt("Nová poznámka:");
 
-  const text = prompt(
-    "Poznámka pro den:",
-    existing?.text || ""
-  );
-
-  if(text === null){
+  if(!text){
     return;
   }
 
-  if(existing){
-
-    existing.text = text;
-
-  }else{
-
-    db.notes.push({
-      id: Date.now(),
-      workerId,
-      date,
-      text
-    });
-  }
+  db.notes.push({
+    id: Date.now(),
+    workerId,
+    date,
+    text
+  });
 
   await saveDb();
 
@@ -719,20 +707,19 @@ function renderBoard(){
           </div>
       `;
 
-      const note =
-        row.kind === "worker"
-          ? getDayNote(row.id, iso(date))
-          : null;
+      const notes =
+  row.kind === "worker"
+    ? getDayNotes(row.id, iso(date))
+    : [];
 
-      if(note){
+notes.forEach(note => {
 
-        html += `
-          <div class="day-note">
-            📝 ${esc(note.text)}
-          </div>
-        `;
-      }
-
+  html += `
+    <div class="day-note">
+      📝 ${esc(note.text)}
+    </div>
+  `;
+});
       ass.forEach(a => {
 
         const j = jobById(a.jobId);
