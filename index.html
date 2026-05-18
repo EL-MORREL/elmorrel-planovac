@@ -599,27 +599,105 @@ function renderSide(){const assigned=new Set(db.assignments.map(a=>Number(a.jobI
   side = visible.filter(j => j.state !== "Vyfakturováno")};unassigned.innerHTML=side.length?side.map(j=>jobCard(j,null)).join(""):`<div class="empty">Žádné zakázky v tomto pohledu.</div>`;
 peopleList.innerHTML=db.workers.length?db.workers.map(w=>`<div class="mini-card" ondblclick="openWorker(${w.id})"><div class="job-title">${esc(w.title)}</div><div class="job-meta">${esc(w.email||"")}</div><div class="badges">${(w.skills||[]).map(s=>`<span class="badge skill">${esc(s)}</span>`).join("")}</div><div class="quick-actions"><button class="secondary" onclick="openWorker(${w.id})">Upravit</button><button class="danger" onclick="deleteWorkerDirect(${w.id})">Smazat</button></div></div>`).join(""):`<div class="empty">Zatím nejsou založení pracovníci.</div>`;
 carsList.innerHTML=db.vehicles.length?db.vehicles.map(v=>`<div class="mini-card" ondblclick="openVehicle(${v.id})"><div class="job-title">${esc(v.title)}</div><div class="job-meta">${esc(v.spz||"")} ${esc(v.type||"")}</div><div class="quick-actions"><button class="secondary" onclick="openVehicle(${v.id})">Upravit</button><button class="danger" onclick="deleteVehicleDirect(${v.id})">Smazat</button></div></div>`).join(""):`<div class="empty">Zatím nejsou založená vozidla.</div>`}
-function renderBoard(){const r=rows();if(!r.length){body.innerHTML=`<div class="row"><div class="name-cell">Bez dat</div><div class="cell" style="grid-column:span 7"><div class="empty">Nejdřív přidej pracovníky nebo vozidla.</div></div></div>`;return}body.innerHTML=r.map(row=>{let html=`<div class="row"><div class="name-cell">
-  <strong>${esc(row.title)}</strong>
-  <div class="sub">${esc(row.sub)}</div></div>`;for(let i=0;i<7;i++){const date=addDays(weekStart,i);let ass=assignmentsFor(row,date).filter(a=>{const j=jobById(a.jobId);return j&&matchesFilter(j)&&matchesSearch(j)});if(jobFilter.value==="active")ass=ass.filter(a=>!isArchiveState(jobById(a.jobId)));const used=usedCapacity(row,ass);html+=`<div class="cell"
-ondblclick="editDayNote(${row.id},'${iso(date)}')" data-row-kind="${row.kind}" data-row-id="${row.id}" data-date="${iso(date)}" ondragover="allowDrop(event)" ondragleave="leaveDrop(event)" ondrop="dropJob(event)"><div class="capacity ${used>row.capacity?"over":""}"><span>${used}/${row.capacity}hod.</span><span>${used>row.capacity?"PŘETÍŽENO":""}</span></div>`;const note = row.kind === "worker"
-  ? getDayNote(row.id, iso(date))
-  : null;
+function renderBoard(){
 
-if(note){
+  const r = rows();
 
-  html += `
-    <div class="day-note">
-      📝 ${esc(note.text)}
-    </div>
-  `;
-}ass.forEach(a=>{const j=jobById(a.jobId);if(j)html+=jobCard(j,a)});html+=`</div>`}return html+`</div>`}).join("")}
-function getDayNote(workerId,date){
+  if(!r.length){
 
-  return db.notes.find(n =>
-    Number(n.workerId) === Number(workerId) &&
-    n.date === date
-  );
+    body.innerHTML = `
+      <div class="row">
+        <div class="name-cell">Bez dat</div>
+        <div class="cell" style="grid-column:span 7">
+          <div class="empty">
+            Nejdřív přidej pracovníky nebo vozidla.
+          </div>
+        </div>
+      </div>
+    `;
+
+    return;
+  }
+
+  body.innerHTML = r.map(row => {
+
+    let html = `
+      <div class="row">
+        <div class="name-cell">
+          <strong>${esc(row.title)}</strong>
+          <div class="sub">${esc(row.sub)}</div>
+        </div>
+    `;
+
+    for(let i=0;i<7;i++){
+
+      const date = addDays(weekStart,i);
+
+      let ass = assignmentsFor(row,date).filter(a => {
+
+        const j = jobById(a.jobId);
+
+        return j && matchesFilter(j) && matchesSearch(j);
+      });
+
+      if(jobFilter.value === "active"){
+
+        ass = ass.filter(a =>
+          !isArchiveState(jobById(a.jobId))
+        );
+      }
+
+      const used = usedCapacity(row,ass);
+
+      html += `
+        <div
+          class="cell"
+          ondblclick="editDayNote(${row.id},'${iso(date)}')"
+          data-row-kind="${row.kind}"
+          data-row-id="${row.id}"
+          data-date="${iso(date)}"
+          ondragover="allowDrop(event)"
+          ondragleave="leaveDrop(event)"
+          ondrop="dropJob(event)"
+        >
+
+          <div class="capacity ${used > row.capacity ? "over" : ""}">
+            <span>${used}/${row.capacity} hod.</span>
+            <span>${used > row.capacity ? "PŘETÍŽENO" : ""}</span>
+          </div>
+      `;
+
+      const note =
+        row.kind === "worker"
+          ? getDayNote(row.id, iso(date))
+          : null;
+
+      if(note){
+
+        html += `
+          <div class="day-note">
+            📝 ${esc(note.text)}
+          </div>
+        `;
+      }
+
+      ass.forEach(a => {
+
+        const j = jobById(a.jobId);
+
+        if(j){
+          html += jobCard(j,a);
+        }
+      });
+
+      html += `</div>`;
+    }
+
+    html += `</div>`;
+
+    return html;
+
+  }).join("");
 }
 
 async function editDayNote(workerId,date){
@@ -1281,6 +1359,9 @@ function startRealtime(){
 
         if(data?.data){
           db = data.data;
+          if(!db.notes){
+  db.notes = [];
+}
           render();
           setStatus("Aktualizováno z cloudu");
         }
