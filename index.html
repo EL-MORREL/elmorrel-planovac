@@ -414,9 +414,9 @@ aside{
 <label class="full">Adresa<input id="j_address"></label><label>Kontakt<input id="j_contact"></label><label>Telefon<input id="j_phone"></label>
 <label>Počet dní<input id="j_days" type="number" min="0" step="0.5" value="1" oninput="syncEstimateFromDaysPeople()"></label>
 <label>Počet pracovníků<input id="j_people" type="number" min="0" step="1" value="1" oninput="syncEstimateFromDaysPeople()"></label>
-<label>Odhad člověkodnů<input id="j_estimated" type="number" min="0" step="0.25" value="1"></label>
-<label>Vytížení bloku pracovníka %<input id="j_load" type="number" min="0" max="200" step="25" value="100"></label>
-<label>Vytížení bloku vozidla %<input id="j_vehicle_load" type="number" min="0" max="200" step="25" value="100"></label>
+<label>Odhad hodin<input id="j_estimated" type="number" min="0" step="0.5" value="10000"></label>
+<label>Hodin Pracovníka<input id="j_load" type="number" min="0" max="24" step="0,5" value="10"></label>
+<label>Hodin vozidla hod.<input id="j_vehicle_load" type="number" min="0" max="24" step="0,5" value="10"></label>
 <label>Čas od<input id="j_from" type="time"></label><label>Čas do<input id="j_to" type="time"></label>
 <label class="full">Poznámka<textarea id="j_note" rows="4"></textarea></label>
 </div><div id="jobStats" class="small" style="margin-top:10px"></div>
@@ -424,12 +424,12 @@ aside{
 </div></div>
 
 <div id="workerModal" class="modal"><div class="dialog"><h2 id="workerModalTitle">Pracovník</h2><div class="grid">
-<label>Jméno<input id="w_title"></label><label>Email<input id="w_email"></label><label>Telefon<input id="w_phone"></label><label>Kapacita na den %<input id="w_capacity" type="number" min="0" max="300" value="100"></label>
+<label>Jméno<input id="w_title"></label><label>Email<input id="w_email"></label><label>Telefon<input id="w_phone"></label><label>Kapacita hodin / den<input id="w_capacity" type="number" min="0" max="24" value="10"></label>
 <label class="full">Specializace pracovníka<select id="w_skills" multiple size="6"><option>Elektroinstalace</option><option>Optika</option><option>Kancelář</option><option>Servis</option><option>Montáž</option><option>Revize</option></select><div class="small">Podrž Ctrl pro výběr více specializací.</div></label>
 </div><div class="actions"><button class="secondary" onclick="closeModal('workerModal')">Zavřít</button><button class="danger" id="deleteWorkerBtn" onclick="deleteWorker()">Smazat</button><button onclick="saveWorker()">Uložit</button></div></div></div>
 
 <div id="vehicleModal" class="modal"><div class="dialog"><h2 id="vehicleModalTitle">Vozidlo</h2><div class="grid">
-<label>Název / označení<input id="v_title"></label><label>SPZ<input id="v_spz"></label><label>Typ<input id="v_type"></label><label>Kapacita %<input id="v_capacity" type="number" min="0" max="300" value="100"></label><label class="full">Poznámka<textarea id="v_note" rows="3"></textarea></label>
+<label>Název / označení<input id="v_title"></label><label>SPZ<input id="v_spz"></label><label>Typ<input id="v_type"></label><label>Kapacita hod.<input id="v_capacity" type="number" min="0" max="24" value="10"></label><label class="full">Poznámka<textarea id="v_note" rows="3"></textarea></label>
 </div><div class="actions"><button class="secondary" onclick="closeModal('vehicleModal')">Zavřít</button><button class="danger" id="deleteVehicleBtn" onclick="deleteVehicle()">Smazat</button><button onclick="saveVehicle()">Uložit</button></div></div></div>
 
 <div id="assignModal" class="modal"><div class="dialog"><h2>Přiřazení zakázky</h2><p class="small">Zakázku můžeš přiřadit pracovníkovi i vozidlu. Nesoulad odbornosti se jen označí, neblokuje.</p>
@@ -515,26 +515,35 @@ function iso(d){const x=new Date(d);return `${x.getFullYear()}-${String(x.getMon
 function czDate(d){return d.toLocaleDateString("cs-CZ",{weekday:"short",day:"numeric",month:"numeric"})}
 function priorityClass(p){p=String(p||"").toLowerCase();if(p.includes("vys"))return"high";if(p.includes("níz")||p.includes("niz"))return"low";return"medium"}
 function jobVisualState(j){if(j.state==="Vyfakturováno")return"invoiced";if(j.state==="Dokončeno")return"done";return""}
-function openModal(id){document.getElementById(id).classList.add("open")}function closeModal(id){document.getElementById(id).classList.remove("open")}
-function jobById(id){return db.jobs.find(j=>Number(j.id)===Number(id))}function workerById(id){return db.workers.find(w=>Number(w.id)===Number(id))}function vehicleById(id){return db.vehicles.find(v=>Number(v.id)===Number(id))}function assignmentById(id){return db.assignments.find(a=>Number(a.id)===Number(id))}
+function openModal(id){document.getElementById(id).classList.add("open")}
+function closeModal(id){document.getElementById(id).classList.remove("open")}
+function jobById(id){return db.jobs.find(j=>Number(j.id)===Number(id))}
+function workerById(id){return db.workers.find(w=>Number(w.id)===Number(id))}
+function vehicleById(id){return db.vehicles.find(v=>Number(v.id)===Number(id))}
+function assignmentById(id){return db.assignments.find(a=>Number(a.id)===Number(id))}
 function getSelectedMulti(id){return Array.from(document.getElementById(id).selectedOptions).map(o=>o.value)}
 function setSelectedMulti(id,values){const set=new Set(values||[]);Array.from(document.getElementById(id).options).forEach(o=>o.selected=set.has(o.value))}
 function workerHasSkill(w,skill){if(!skill||skill==="Bez požadavku")return true;return Array.isArray(w?.skills)&&w.skills.includes(skill)}
-function plannedUnits(jobId){return db.assignments.filter(a=>Number(a.jobId)===Number(jobId)).reduce((s,a)=>s+(Number(a.load||100)/100),0)}
+function plannedUnits(jobId){
+  return db.assignments
+    .filter(a=>Number(a.jobId)===Number(jobId))
+    .reduce((s,a)=>s+Number(a.load||0),0)
+}
 function jobProgress(j){const estimated=Math.max(Number(j.estimated||0),0),actual=plannedUnits(j.id),pct=estimated>0?Math.round((actual/estimated)*100):0;let color="#16a34a";if(pct>100)color="#dc2626";else if(pct>=85)color="#d97706";return{estimated,actual,pct,color,over:estimated>0&&actual>estimated}}
 function isArchiveState(j){return["Dokončeno","Vyfakturováno","Storno"].includes(j.state)}
 function matchesSearch(j){const q=document.getElementById("search").value.trim().toLowerCase();if(!q)return true;return[j.title,j.address,j.contact,j.phone,j.note,j.state,j.skill].join(" ").toLowerCase().includes(q)}
 function matchesFilter(j){const f=document.getElementById("jobFilter").value,p=jobProgress(j);if(f==="active")return!isArchiveState(j);if(f==="archive")return isArchiveState(j);if(f==="to_invoice")return j.state==="Dokončeno";if(f==="overrun")return p.over;return true}
 function switchTab(t){sideJobs.classList.toggle("hidden",t!=="jobs");sidePeople.classList.toggle("hidden",t!=="people");sideCars.classList.toggle("hidden",t!=="cars");tabJobs.classList.toggle("active",t==="jobs");tabPeople.classList.toggle("active",t==="people");tabCars.classList.toggle("active",t==="cars")}
-function prevWeek(){weekStart=addDays(weekStart,-7);render()}function nextWeek(){weekStart=addDays(weekStart,7);render()}function goToday(){weekStart=monday(new Date());render()}
+function prevWeek(){weekStart=addDays(weekStart,-7);render()}
+function nextWeek(){weekStart=addDays(weekStart,7);render()}
+function goToday(){weekStart=monday(new Date());render()}
 function rows(){const mode=viewMode.value;if(mode==="vehicles")return db.vehicles.map(v=>({kind:"vehicle",id:v.id,title:v.title,sub:[v.spz,v.type].filter(Boolean).join(" · "),capacity:Number(v.capacity||100)}));return db.workers.map(w=>({kind:"worker",id:w.id,title:w.title,sub:[w.email,w.phone].filter(Boolean).join(" · "),capacity:Number(w.capacity||100)}))}
 function assignmentsFor(row,date){const d=iso(date);if(row.kind==="worker")return db.assignments.filter(a=>Number(a.workerId)===Number(row.id)&&a.date===d);return db.assignments.filter(a=>Number(a.vehicleId)===Number(row.id)&&a.date===d)}
 function usedCapacity(row,ass){return row.kind==="worker"?ass.reduce((s,a)=>s+Number(a.load||100),0):ass.reduce((s,a)=>s+Number(a.vehicleLoad||100),0)}
 function render(){renderHeader();renderSide();renderBoard()}
 function renderHeader(){const days=["Pracovník / vozidlo"];for(let i=0;i<7;i++)days.push(czDate(addDays(weekStart,i)));head.innerHTML=days.map(d=>`<div>${esc(d)}</div>`).join("")}
-function renderSide(){const assigned=new Set(db.assignments.map(a=>Number(a.jobId))),filter=jobFilter.value;jobsTitle.textContent=filter==="archive"?"Archiv zakázek":filter==="to_invoice"?"Čeká na fakturaci":filter==="overrun"?"Přetažené zakázky":"Zakázky";let visible=db.jobs.filter(j=>matchesFilter(j)&&matchesSearch(j));let side = visible;
-
-if(filter !== "archive"){
+function renderSide(){const assigned=new Set(db.assignments.map(a=>Number(a.jobId))),filter=jobFilter.value;jobsTitle.textContent=filter==="archive"?"Archiv zakázek":filter==="to_invoice"?"Čeká na fakturaci":filter==="overrun"?"Přetažené zakázky":"Zakázky";
+                      let visible=db.jobs.filter(j=>matchesFilter(j)&&matchesSearch(j));let side = visible;if(filter !== "archive"){
   side = visible.filter(j => j.state !== "Vyfakturováno")};unassigned.innerHTML=side.length?side.map(j=>jobCard(j,null)).join(""):`<div class="empty">Žádné zakázky v tomto pohledu.</div>`;
 peopleList.innerHTML=db.workers.length?db.workers.map(w=>`<div class="mini-card" ondblclick="openWorker(${w.id})"><div class="job-title">${esc(w.title)}</div><div class="job-meta">${esc(w.email||"")}</div><div class="badges">${(w.skills||[]).map(s=>`<span class="badge skill">${esc(s)}</span>`).join("")}</div><div class="quick-actions"><button class="secondary" onclick="openWorker(${w.id})">Upravit</button><button class="danger" onclick="deleteWorkerDirect(${w.id})">Smazat</button></div></div>`).join(""):`<div class="empty">Zatím nejsou založení pracovníci.</div>`;
 carsList.innerHTML=db.vehicles.length?db.vehicles.map(v=>`<div class="mini-card" ondblclick="openVehicle(${v.id})"><div class="job-title">${esc(v.title)}</div><div class="job-meta">${esc(v.spz||"")} ${esc(v.type||"")}</div><div class="quick-actions"><button class="secondary" onclick="openVehicle(${v.id})">Upravit</button><button class="danger" onclick="deleteVehicleDirect(${v.id})">Smazat</button></div></div>`).join(""):`<div class="empty">Zatím nejsou založená vozidla.</div>`}
@@ -669,13 +678,13 @@ async function dropJob(ev){
 }
 
 function syncEstimateFromDaysPeople(){j_estimated.value=(Number(j_days.value||0)*Number(j_people.value||0)).toString()}
-function openJob(id){selectedJobId=id||null;const j=id?jobById(id):null;jobModalTitle.textContent=j?"Detail zakázky":"Nová zakázka";j_title.value=j?.title||"";j_address.value=j?.address||"";j_contact.value=j?.contact||"";j_phone.value=j?.phone||"";j_priority.value=j?.priority||"Střední";j_skill.value=j?.skill||"Bez požadavku";j_state.value=j?.state||"Nová";j_days.value=j?.days||1;j_people.value=j?.people||1;j_estimated.value=j?.estimated||((j?.days||1)*(j?.people||1));j_load.value=j?.load||100;j_vehicle_load.value=j?.vehicleLoad||100;j_from.value=j?.timeFrom||"";j_to.value=j?.timeTo||"";j_note.value=j?.note||"";deleteJobBtn.classList.toggle("hidden",!j);duplicateJobBtn.classList.toggle("hidden",!j);completeJobBtn.classList.toggle("hidden",!j);invoiceJobBtn.classList.toggle("hidden",!j);if(j){
+function openJob(id){selectedJobId=id||null;const j=id?jobById(id):null;jobModalTitle.textContent=j?"Detail zakázky":"Nová zakázka";j_title.value=j?.title||"";j_address.value=j?.address||"";j_contact.value=j?.contact||"";j_phone.value=j?.phone||"";j_priority.value=j?.priority||"Střední";j_skill.value=j?.skill||"Bez požadavku";j_state.value=j?.state||"Nová";j_days.value=j?.days||1;j_people.value=j?.people||1;j_estimated.value=j?.estimated||((j?.days||1)*(j?.people||1));j_load.value=j?.load||0;j_vehicle_load.value=j?.vehicleLoad||0;j_from.value=j?.timeFrom||"";j_to.value=j?.timeTo||"";j_note.value=j?.note||"";deleteJobBtn.classList.toggle("hidden",!j);duplicateJobBtn.classList.toggle("hidden",!j);completeJobBtn.classList.toggle("hidden",!j);invoiceJobBtn.classList.toggle("hidden",!j);if(j){
   const p = jobProgress(j);
 
   jobStats.innerHTML = `
-    Odhad: <b>${p.estimated}</b> člověkodnů ·
-    Naplánováno: <b>${p.actual.toFixed(2)}</b> ·
-    Využití: <b>${p.pct}%</b>
+    Odhad: <b>${p.estimated}</b> hodin ·
+    Naplánováno: <b>${p.actual.toFixed(1)}</b> ·
+    Využití: <b>${p.pct}hod.</b>
     ${p.over ? " · <b style='color:#b91c1c'>PŘETAŽENO</b>" : ""}
   `;
 
@@ -702,11 +711,11 @@ function getJobPayload(){
     priority:j_priority.value,
     skill:j_skill.value,
     state:j_state.value,
-    days:Number(j_days.value||0),
-    people:Number(j_people.value||0),
-    estimated:Number(j_estimated.value||0),
-    load:Number(j_load.value||100),
-    vehicleLoad:Number(j_vehicle_load.value||100),
+    days:Number(j_days.value||10),
+    people:Number(j_people.value||10),
+    estimated:Number(j_estimated.value||10),
+    load:Number(j_load.value||0),
+    vehicleLoad:Number(j_vehicle_load.value||10),
     timeFrom:j_from.value,
     timeTo:j_to.value,
     note:j_note.value.trim(),
@@ -798,7 +807,7 @@ async function deleteJob(){
 
 async function duplicateJob(){if(!selectedJobId)return;const j=jobById(selectedJobId);if(!j)return;db.jobs.push({...j,id:nextId(db.jobs),title:j.title+" - kopie",state:"Nová",invoiced:false});await saveDb();closeModal("jobModal");render()}
 async function setJobState(state){if(!selectedJobId)return;const j=jobById(selectedJobId);if(!j)return;j.state=state;if(state==="Vyfakturováno")j.invoiced=true;await saveDb();closeModal("jobModal");render()}
-function openWorker(id){selectedWorkerId=id||null;const w=id?workerById(id):null;workerModalTitle.textContent=w?"Detail pracovníka":"Nový pracovník";w_title.value=w?.title||"";w_email.value=w?.email||"";w_phone.value=w?.phone||"";w_capacity.value=w?.capacity||100;setSelectedMulti("w_skills",w?.skills||[]);deleteWorkerBtn.classList.toggle("hidden",!w);openModal("workerModal")}
+function openWorker(id){selectedWorkerId=id||null;const w=id?workerById(id):null;workerModalTitle.textContent=w?"Detail pracovníka":"Nový pracovník";w_title.value=w?.title||"";w_email.value=w?.email||"";w_phone.value=w?.phone||"";w_capacity.value=w?.capacity||10;setSelectedMulti("w_skills",w?.skills||[]);deleteWorkerBtn.classList.toggle("hidden",!w);openModal("workerModal")}
 async function saveWorker(){
 
   if(!canEdit){
@@ -810,7 +819,7 @@ async function saveWorker(){
     title: w_title.value.trim(),
     email: w_email.value.trim(),
     phone: w_phone.value.trim(),
-    capacity: Number(w_capacity.value || 100),
+    capacity: Number(w_capacity.value || 0),
     skills: getSelectedMulti("w_skills")
   };
 
@@ -892,7 +901,7 @@ async function saveVehicle(){
     title: v_title.value.trim(),
     spz: v_spz.value.trim(),
     type: v_type.value.trim(),
-    capacity: Number(v_capacity.value || 100),
+    capacity: Number(v_capacity.value || 10),
     note: v_note.value.trim()
   };
 
@@ -987,9 +996,9 @@ async function saveAssignmentFromModal(){
     ? Number(a_vehicle.value)
     : null;
 
-  a.load = Number(a_load.value || 100);
+  a.load = Number(a_load.value || 10);
 
-  a.vehicleLoad = Number(a_vehicle_load.value || 100);
+  a.vehicleLoad = Number(a_vehicle_load.value || 10);
 
   if(!a.workerId && !a.vehicleId){
 
