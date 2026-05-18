@@ -479,7 +479,7 @@ let currentUser = null;
 let realtimeSubscribed = false;
 let canEdit = false;
   
-function createEmptyDb(){return{jobs:[],workers:[],vehicles:[],assignments:[]}}
+function createEmptyDb(){return{jobs:[],workers:[],vehicles:[],assignments:[],notes:[]}}
 async function loadDb(){
 
   if(!currentUser) return;
