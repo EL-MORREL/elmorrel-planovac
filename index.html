@@ -608,7 +608,7 @@ function jobCard(j,a){
       Upravit plán
     </button>
   </div>
-` : ""}<div class="progress"><div style="width:${Math.min(p.pct,10)}%;background:${p.color}"></div></div>${p.over?`<div class="job-meta" style="color:#991b1b;font-weight:700">Přetaženo o ${(p.actual-p.estimated).toFixed(1)} hodin</div>`:""}
+` : ""}<div class="progress"><div style="width:${Math.min(p.pct,100)}%;background:${p.color}"></div></div>${p.over?`<div class="job-meta" style="color:#991b1b;font-weight:700">Přetaženo o ${(p.actual-p.estimated).toFixed(1)} hodin</div>`:""}
 ${mismatch?`<div class="skill-note">⚠ Pracovník nemá požadovanou specializaci</div>`:""}</div>`;
 }
 function dragJob(ev){const card=ev.target.closest(".job");ev.dataTransfer.setData("jobId",card.dataset.jobId);ev.dataTransfer.setData("assignmentId",card.dataset.assignmentId||"");ev.dataTransfer.effectAllowed="move"}
@@ -655,8 +655,8 @@ async function dropJob(ev){
       workerId: null,
       vehicleId: null,
       date,
-      load: Number(job.load || 100),
-      vehicleLoad: Number(job.vehicleLoad || 100)
+      load: Number(job.load || 10),
+      vehicleLoad: Number(job.vehicleLoad || 10)
     };
 
     db.assignments.push(a);
