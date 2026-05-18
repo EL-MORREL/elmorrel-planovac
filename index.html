@@ -433,7 +433,7 @@ aside{
 </div><div class="actions"><button class="secondary" onclick="closeModal('vehicleModal')">Zavřít</button><button class="danger" id="deleteVehicleBtn" onclick="deleteVehicle()">Smazat</button><button onclick="saveVehicle()">Uložit</button></div></div></div>
 
 <div id="assignModal" class="modal"><div class="dialog"><h2>Přiřazení zakázky</h2><p class="small">Zakázku můžeš přiřadit pracovníkovi i vozidlu. Nesoulad odbornosti se jen označí, neblokuje.</p>
-<div class="grid"><label>Zakázka<input id="a_job_title" disabled></label><label>Datum<input id="a_date" type="date"></label><label>Pracovník<select id="a_worker"></select></label><label>Vozidlo<select id="a_vehicle"></select></label><label>Vytížení pracovníka %<input id="a_load" type="number" min="0" max="200" step="25"></label><label>Vytížení vozidla %<input id="a_vehicle_load" type="number" min="0" max="200" step="25"></label></div>
+<div class="grid"><label>Zakázka<input id="a_job_title" disabled></label><label>Datum<input id="a_date" type="date"></label><label>Pracovník<select id="a_worker"></select></label><label>Vozidlo<select id="a_vehicle"></select></label><label>Vytížení pracovníka hod.<input id="a_load" type="number" min="0" max="24" step="0,5"></label><label>Vytížení vozidla hod.<input id="a_vehicle_load" type="number" min="0" max="24" step="0,5"></label></div>
 <div class="actions"><button class="secondary" onclick="closeModal('assignModal')">Zavřít</button><button class="danger" onclick="unassignCurrent()">Odebrat z plánu</button><button onclick="saveAssignmentFromModal()">Uložit přiřazení</button></div></div></div>
 
 <script>
@@ -597,7 +597,7 @@ function jobCard(j,a){
       Upravit plán
     </button>
   </div>
-` : ""}<div class="progress"><div style="width:${Math.min(p.pct,100)}%;background:${p.color}"></div></div>${p.over?`<div class="job-meta" style="color:#991b1b;font-weight:700">Přetaženo o ${(p.actual-p.estimated).toFixed(2)} člověkodnů</div>`:""}
+` : ""}<div class="progress"><div style="width:${Math.min(p.pct,10)}%;background:${p.color}"></div></div>${p.over?`<div class="job-meta" style="color:#991b1b;font-weight:700">Přetaženo o ${(p.actual-p.estimated).toFixed(1)} hodin</div>`:""}
 ${mismatch?`<div class="skill-note">⚠ Pracovník nemá požadovanou specializaci</div>`:""}</div>`;
 }
 function dragJob(ev){const card=ev.target.closest(".job");ev.dataTransfer.setData("jobId",card.dataset.jobId);ev.dataTransfer.setData("assignmentId",card.dataset.assignmentId||"");ev.dataTransfer.effectAllowed="move"}
