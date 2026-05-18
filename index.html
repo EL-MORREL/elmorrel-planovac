@@ -471,7 +471,9 @@ let canEdit = false;
   
 function createEmptyDb(){return{jobs:[],workers:[],vehicles:[],assignments:[]}}
 async function loadDb(){
+
   if(!currentUser) return;
+
   const { data, error } = await supabaseClient
     .from("app_state")
     .select("data")
@@ -480,16 +482,35 @@ async function loadDb(){
 
   if(error){
     console.error("LOAD ERROR:", error);
-    alert("Chyba načtení supabaseClient: " + error.message);
+    alert("Chyba načtení supabase: " + error.message);
     return;
   }
 
   if(data?.data){
+
     db = data.data;
+
   }else{
+
     db = createEmptyDb();
+
     await saveDb();
   }
+
+  // migrace starých procent na hodiny
+  db.workers.forEach(w => {
+
+    if(w.capacity === 100){
+      w.capacity = 10;
+    }
+  });
+
+  db.vehicles.forEach(v => {
+
+    if(v.capacity === 100){
+      v.capacity = 10;
+    }
+  });
 
   render();
 }
@@ -556,7 +577,11 @@ function nextWeek(){weekStart=addDays(weekStart,7);render()}
 function goToday(){weekStart=monday(new Date());render()}
 function rows(){const mode=viewMode.value;if(mode==="vehicles")return db.vehicles.map(v=>({kind:"vehicle",id:v.id,title:v.title,sub:[v.spz,v.type].filter(Boolean).join(" · "),capacity:Number(v.capacity||10)}));return db.workers.map(w=>({kind:"worker",id:w.id,title:w.title,sub:[w.email,w.phone].filter(Boolean).join(" · "),capacity:Number(w.capacity||10)}))}
 function assignmentsFor(row,date){const d=iso(date);if(row.kind==="worker")return db.assignments.filter(a=>Number(a.workerId)===Number(row.id)&&a.date===d);return db.assignments.filter(a=>Number(a.vehicleId)===Number(row.id)&&a.date===d)}
-function usedCapacity(row,ass){return row.kind==="worker"?ass.reduce((s,a)=>s+Number(a.load||10),0):ass.reduce((s,a)=>s+Number(a.vehicleLoad||10),0)}
+function usedCapacity(row,ass){
+  return row.kind==="worker"
+    ? ass.reduce((s,a)=>s+Number(a.load||10),0)
+    : ass.reduce((s,a)=>s+Number(a.vehicleLoad||10),0)
+}
 function render(){renderHeader();renderSide();renderBoard()}
 function renderHeader(){const days=["Pracovník / vozidlo"];for(let i=0;i<7;i++)days.push(czDate(addDays(weekStart,i)));head.innerHTML=days.map(d=>`<div>${esc(d)}</div>`).join("")}
 function renderSide(){const assigned=new Set(db.assignments.map(a=>Number(a.jobId))),filter=jobFilter.value;jobsTitle.textContent=filter==="archive"?"Archiv zakázek":filter==="to_invoice"?"Čeká na fakturaci":filter==="overrun"?"Přetažené zakázky":"Zakázky";
