@@ -107,11 +107,12 @@ aside{
   border-radius:14px;
   overflow:visible;
   box-shadow:var(--shadow);
-  }
+}
 .head,.row{
   display:grid;
   grid-template-columns:280px repeat(7,220px);}
- .head{
+ 
+  .head{
   position:sticky;
   top:0;
   z-index:50;
@@ -120,11 +121,16 @@ aside{
 }
 
 .head > div{
+  padding:12px;
+  border-right:1px solid var(--line);
+  border-bottom:1px solid var(--line);
+  font-weight:800;
+  text-align:center;
+
   position:sticky;
   top:0;
   z-index:51;
   background:#f8fbff;
-  box-shadow:0 1px 0 #dbe3ef;
 }
   .tabs{
   display:flex;
@@ -143,14 +149,19 @@ aside{
   background:#0f6cbd;
   color:white;
   border-color:#0f6cbd;}
-  .head>div{padding:12px;border-right:1px solid var(--line);border-bottom:1px solid var(--line);font-weight:800;text-align:center}
-  .head > div:first-child{
-  position:sticky;
-  left:0;
-  top:0;
-  z-index:60;
-  background:#f8fbff;
+  .head>div{
+  padding:12px;
+  border-right:1px solid var(--line);
+  border-bottom:1px solid var(--line);
+  font-weight:800;
+  text-align:center
 }
+
+.head > div:first-child{
+  background:#f8fbff;
+  z-index:10;
+}
+
 .name-cell{
   min-height:150px;
   background:#fff;
@@ -160,13 +171,9 @@ aside{
   font-weight:400;
   position:sticky;
   left:0;
-  z-index:40;}
-  .sub{
-  font-size:12px;
-  color:#607086;
-  font-weight:400;
-  margin-top:4px;
-  line-height:1.3;}
+  z-index:40;
+  background:#fff;
+}
 .name-cell strong{
   font-weight:800;}
 .cell{min-height:150px;background:#fff;padding:7px;border-right:1px solid var(--line);border-bottom:1px solid var(--line)}.cell.dragover{background:#eaf4ff;outline:3px solid #8bc5ff;outline-offset:-3px}
@@ -359,52 +366,6 @@ aside{
     height:5px;
   }
 }  
-
-
-/* FIX: stabilní zamrzání hlavičky a levého sloupce */
-.board-wrap{
-  overflow:auto!important;
-  position:relative!important;
-  max-height:calc(100vh - 120px);
-}
-
-.board{
-  overflow:visible!important;
-}
-
-.head{
-  position:sticky!important;
-  top:0!important;
-  z-index:1000!important;
-  background:#f8fbff!important;
-}
-
-.head > div{
-  position:static!important;
-  top:auto!important;
-  left:auto!important;
-  z-index:auto!important;
-  background:#f8fbff!important;
-}
-
-.name-cell{
-  position:sticky!important;
-  left:0!important;
-  z-index:900!important;
-  background:#fff!important;
-  box-shadow:2px 0 6px rgba(0,0,0,.08);
-}
-
-.row{
-  position:relative;
-}
-
-@media(max-width:600px){
-  .name-cell{
-    position:sticky!important;
-    left:0!important;
-  }
-}
 
 </style>
 </head>
@@ -679,6 +640,11 @@ async function deleteDayNote(noteId){
 }
 async function addAbsence(workerId,date){
 
+  if(!canEdit){
+    alert("Nemáte oprávnění k úpravám");
+    return;
+  }
+
   const type = prompt(
     "Typ volna:\n\nDovolená\nNemoc\nŠkolení\nHome office\nVolno"
   );
@@ -698,6 +664,11 @@ async function addAbsence(workerId,date){
 }
 async function deleteAbsence(id){
 
+  if(!canEdit){
+    alert("Nemáte oprávnění k úpravám");
+    return;
+  }
+
   if(!confirm("Smazat volno?")){
     return;
   }
@@ -711,6 +682,11 @@ async function deleteAbsence(id){
   render();
 }
 async function editExistingNote(noteId){
+
+  if(!canEdit){
+    alert("Nemáte oprávnění k úpravám");
+    return;
+  }
 
   const note = db.notes.find(
     n => Number(n.id) === Number(noteId)
@@ -734,7 +710,7 @@ async function editExistingNote(noteId){
   render();
 }  
 function render(){renderHeader();renderSide();renderBoard()}
-function renderHeader(){const days=["Pracovník / vozidlo"];for(let i=0;i<7;i++)days.push(czDate(addDays(weekStart,i)));head.innerHTML=days.map(d=>`<div>${esc(d)}</div>`).join("")}
+function renderHeader(){const days=["Pracovník"];for(let i=0;i<7;i++)days.push(czDate(addDays(weekStart,i)));head.innerHTML=days.map(d=>`<div>${esc(d)}</div>`).join("")}
 function renderSide(){const assigned=new Set(db.assignments.map(a=>Number(a.jobId))),filter=jobFilter.value;jobsTitle.textContent=filter==="archive"?"Archiv zakázek":filter==="to_invoice"?"Čeká na fakturaci":filter==="overrun"?"Přetažené zakázky":"Zakázky";
   let visible=db.jobs.filter(j=>matchesFilter(j)&&matchesSearch(j));
   let side = visible;if(filter !== "archive"){
@@ -835,10 +811,6 @@ notes.forEach(note => {
   </div>
 `;
 });
-  Number(x.workerId) === Number(row.id) &&
-  x.date === iso(date)
-);
-
 absences.forEach(a => {
 
   let color = "#94a3b8";
@@ -1344,7 +1316,13 @@ async function unassignCurrent(){
   closeModal("assignModal");
   render();
 }
-function exportData(){const blob=new Blob([JSON.stringify(db,null,2)],{type:"application/json"}),url=URL.createObjectURL(blob),a=document.createElement("a");a.href=url;a.download="elmorrel-dispecink-data.json";a.click();URL.revokeObjectURL(url)}
+function exportData(){
+  if(!canEdit){
+    alert("Nemáte oprávnění k exportu");
+    return;
+  }
+  const blob=new Blob([JSON.stringify(db,null,2)],{type:"application/json"}),url=URL.createObjectURL(blob),a=document.createElement("a");a.href=url;a.download="elmorrel-dispecink-data.json";a.click();URL.revokeObjectURL(url)
+}
 async function importData(e){
   if(!canEdit){
     alert("Nemáte oprávnění k úpravám");
