@@ -334,11 +334,18 @@ aside{
     grid-template-columns:120px repeat(7,95px);
   }
 
-  .cell,
+  .cell{
+    min-height:85px;
+    padding:3px;
+  }
   .name-cell{
     min-height:85px;
     padding:3px;
-    position:relative;
+
+    position:sticky;
+    left:0;
+    z-index:40;
+    background:#fff;
   }
 
   .job{
