@@ -731,8 +731,8 @@ function renderBoard(){
       }
      const used = usedCapacity(row,ass,date);
      const absences = db.absences.filter(x =>
-  Number(x.workerId) === Number(row.id) &&
-  x.date === iso(date)
+     Number(x.workerId) === Number(row.id) &&
+     x.date === iso(date)
 );
 
 const hasAbsence = absences.length > 0;
@@ -789,9 +789,6 @@ notes.forEach(note => {
   </div>
 `;
 });
-  Number(x.workerId) === Number(row.id) &&
-  x.date === iso(date)
-);
 
 absences.forEach(a => {
 
