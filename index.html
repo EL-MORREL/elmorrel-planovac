@@ -112,7 +112,8 @@ aside{
 .head,.row{
   display:grid;
   grid-template-columns:280px repeat(7,220px);}
- .head{
+ 
+  .head{
   position:sticky;
   top:0;
   z-index:50;
@@ -121,11 +122,16 @@ aside{
 }
 
 .head > div{
+  padding:12px;
+  border-right:1px solid var(--line);
+  border-bottom:1px solid var(--line);
+  font-weight:800;
+  text-align:center;
+
   position:sticky;
   top:0;
   z-index:51;
   background:#f8fbff;
-  box-shadow:0 1px 0 #dbe3ef;
 }
   .tabs{
   display:flex;
@@ -145,13 +151,6 @@ aside{
   color:white;
   border-color:#0f6cbd;}
   .head>div{padding:12px;border-right:1px solid var(--line);border-bottom:1px solid var(--line);font-weight:800;text-align:center}
-  .head > div:first-child{
-  position:sticky;
-  left:0;
-  top:0;
-  z-index:80;
-  background:#f8fbff;
-}
 .name-cell{
   min-height:150px;
   background:#fff;
@@ -163,7 +162,7 @@ aside{
   position:sticky;
   left:0;
 
-  z-index:70;
+  z-index:40;
 
   box-shadow:2px 0 4px rgba(0,0,0,.05);
 }
@@ -703,7 +702,7 @@ async function editExistingNote(noteId){
   render();
 }  
 function render(){renderHeader();renderSide();renderBoard()}
-function renderHeader(){const days=["Pracovník / vozidlo"];for(let i=0;i<7;i++)days.push(czDate(addDays(weekStart,i)));head.innerHTML=days.map(d=>`<div>${esc(d)}</div>`).join("")}
+function renderHeader(){const days=["Pracovník"];for(let i=0;i<7;i++)days.push(czDate(addDays(weekStart,i)));head.innerHTML=days.map(d=>`<div>${esc(d)}</div>`).join("")}
 function renderSide(){const assigned=new Set(db.assignments.map(a=>Number(a.jobId))),filter=jobFilter.value;jobsTitle.textContent=filter==="archive"?"Archiv zakázek":filter==="to_invoice"?"Čeká na fakturaci":filter==="overrun"?"Přetažené zakázky":"Zakázky";
   let visible=db.jobs.filter(j=>matchesFilter(j)&&matchesSearch(j));
   let side = visible;if(filter !== "archive"){
