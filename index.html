@@ -519,6 +519,29 @@ async function deleteDayNote(noteId){
   await saveDb();
   render();
 }
+async function editExistingNote(noteId){
+
+  const note = db.notes.find(
+    n => Number(n.id) === Number(noteId)
+  );
+
+  if(!note) return;
+
+  const text = prompt(
+    "Upravit poznámku:",
+    note.text
+  );
+
+  if(text === null){
+    return;
+  }
+
+  note.text = text;
+
+  await saveDb();
+
+  render();
+}  
 function render(){renderHeader();renderSide();renderBoard()}
 function renderHeader(){const days=["Pracovník / vozidlo"];for(let i=0;i<7;i++)days.push(czDate(addDays(weekStart,i)));head.innerHTML=days.map(d=>`<div>${esc(d)}</div>`).join("")}
 function renderSide(){const assigned=new Set(db.assignments.map(a=>Number(a.jobId))),filter=jobFilter.value;jobsTitle.textContent=filter==="archive"?"Archiv zakázek":filter==="to_invoice"?"Čeká na fakturaci":filter==="overrun"?"Přetažené zakázky":"Zakázky";
@@ -590,11 +613,15 @@ function renderBoard(){
     : [];
 notes.forEach(note => {
  html += `
-  <div class="day-note">
+  <div
+    class="day-note"
+    onclick="editExistingNote(${note.id})"
+  >
     <span>📝 ${esc(note.text)}</span>
+
     <button
       class="note-delete"
-      onclick="deleteDayNote(${note.id})">
+      onclick="event.stopPropagation(); deleteDayNote(${note.id})">
       ✕
     </button>
   </div>
