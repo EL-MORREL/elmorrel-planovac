@@ -633,6 +633,11 @@ async function deleteDayNote(noteId){
 }
 async function addAbsence(workerId,date){
 
+  if(!canEdit){
+    alert("Nemáte oprávnění k úpravám");
+    return;
+  }
+
   const type = prompt(
     "Typ volna:\n\nDovolená\nNemoc\nŠkolení\nHome office\nVolno"
   );
@@ -652,6 +657,11 @@ async function addAbsence(workerId,date){
 }
 async function deleteAbsence(id){
 
+  if(!canEdit){
+    alert("Nemáte oprávnění k úpravám");
+    return;
+  }
+
   if(!confirm("Smazat volno?")){
     return;
   }
@@ -665,6 +675,11 @@ async function deleteAbsence(id){
   render();
 }
 async function editExistingNote(noteId){
+
+  if(!canEdit){
+    alert("Nemáte oprávnění k úpravám");
+    return;
+  }
 
   const note = db.notes.find(
     n => Number(n.id) === Number(noteId)
@@ -731,8 +746,8 @@ function renderBoard(){
       }
      const used = usedCapacity(row,ass,date);
      const absences = db.absences.filter(x =>
-     Number(x.workerId) === Number(row.id) &&
-     x.date === iso(date)
+  Number(x.workerId) === Number(row.id) &&
+  x.date === iso(date)
 );
 
 const hasAbsence = absences.length > 0;
@@ -789,7 +804,6 @@ notes.forEach(note => {
   </div>
 `;
 });
-
 absences.forEach(a => {
 
   let color = "#94a3b8";
@@ -1295,7 +1309,13 @@ async function unassignCurrent(){
   closeModal("assignModal");
   render();
 }
-function exportData(){const blob=new Blob([JSON.stringify(db,null,2)],{type:"application/json"}),url=URL.createObjectURL(blob),a=document.createElement("a");a.href=url;a.download="elmorrel-dispecink-data.json";a.click();URL.revokeObjectURL(url)}
+function exportData(){
+  if(!canEdit){
+    alert("Nemáte oprávnění k exportu");
+    return;
+  }
+  const blob=new Blob([JSON.stringify(db,null,2)],{type:"application/json"}),url=URL.createObjectURL(blob),a=document.createElement("a");a.href=url;a.download="elmorrel-dispecink-data.json";a.click();URL.revokeObjectURL(url)
+}
 async function importData(e){
   if(!canEdit){
     alert("Nemáte oprávnění k úpravám");
