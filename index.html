@@ -202,8 +202,8 @@ aside{
   color:#111827;
   border:1px solid #d1d5db;
   border-radius:6px;
-  font-size:11px;
-  padding:4px;}
+  font-size:10px;
+  padding:3px;}
 .day-note-add:hover{
   background:#e5e7eb;}
 .empty{padding:12px;color:var(--muted);background:#f8fafc;border:1px dashed #cbd5e1;border-radius:10px;font-size:13px}
@@ -379,39 +379,54 @@ let currentUser = null;
 let realtimeSubscribed = false;
 let canEdit = false; 
 
-function createEmptyDb(){return{jobs:[],workers:[],vehicles:[],assignments:[],notes:[]}}
+function createEmptyDb(){return{jobs:[],workers:[],vehicles:[],assignments:[],notes:[],absences:[]}}
 async function loadDb(){
   if(!currentUser) return;
+
   const { data, error } = await supabaseClient
     .from("app_state")
     .select("data")
     .eq("id", 1)
     .maybeSingle();
+
   if(error){
     console.error("LOAD ERROR:", error);
     alert("Chyba načtení supabase: " + error.message);
     return;
   }
+
   if(data?.data){
     db = data.data;
   }else{
     db = createEmptyDb();
     await saveDb();
   }
+
+  // DOPLNIT ↓↓↓
+
+  if(!db.notes){
+    db.notes = [];
+  }
+
+  if(!db.absences){
+    db.absences = [];
+  }
+
   // migrace starých procent na hodiny
   db.workers.forEach(w => {
     if(w.capacity === 100){
       w.capacity = 10;
     }
   });
+
   db.vehicles.forEach(v => {
     if(v.capacity === 100){
       v.capacity = 10;
     }
   });
+
   render();
 }
-
 async function saveDb(){
   if(!currentUser){
     alert("Nejste přihlášen");
@@ -467,10 +482,25 @@ function nextWeek(){weekStart=addDays(weekStart,7);render()}
 function goToday(){weekStart=monday(new Date());render()}
 function rows(){const mode=viewMode.value;if(mode==="vehicles")return db.vehicles.map(v=>({kind:"vehicle",id:v.id,title:v.title,sub:[v.spz,v.type].filter(Boolean).join(" · "),capacity:Number(v.capacity||10)}));return db.workers.map(w=>({kind:"worker",id:w.id,title:w.title,sub:[w.email,w.phone].filter(Boolean).join(" · "),capacity:Number(w.capacity||10)}))}
 function assignmentsFor(row,date){const d=iso(date);if(row.kind==="worker")return db.assignments.filter(a=>Number(a.workerId)===Number(row.id)&&a.date===d);return db.assignments.filter(a=>Number(a.vehicleId)===Number(row.id)&&a.date===d)}
-function usedCapacity(row,ass){
-  return row.kind==="worker"
+function usedCapacity(row,ass,date){
+
+  let used = row.kind==="worker"
     ? ass.reduce((s,a)=>s+Number(a.load||10),0)
-    : ass.reduce((s,a)=>s+Number(a.vehicleLoad||10),0)
+    : ass.reduce((s,a)=>s+Number(a.vehicleLoad||10),0);
+
+  if(row.kind === "worker"){
+
+    const hasAbsence = db.absences.some(a =>
+      Number(a.workerId) === Number(row.id) &&
+      a.date === iso(date)
+    );
+
+    if(hasAbsence){
+      used += row.capacity;
+    }
+  }
+
+  return used;
 }
 function getDayNotes(workerId,date){
   if(!db.notes){
@@ -534,6 +564,20 @@ async function addAbsence(workerId,date){
     date,
     type
   });
+
+  await saveDb();
+
+  render();
+}
+async function deleteAbsence(id){
+
+  if(!confirm("Smazat volno?")){
+    return;
+  }
+
+  db.absences = db.absences.filter(
+    a => Number(a.id) !== Number(id)
+  );
 
   await saveDb();
 
@@ -604,7 +648,7 @@ function renderBoard(){
           !isArchiveState(jobById(a.jobId))
         );
       }
-      const used = usedCapacity(row,ass);
+     const used = usedCapacity(row,ass,date);
       html += `
   <div
     class="cell"
@@ -624,7 +668,7 @@ function renderBoard(){
     ${row.kind === "worker" ? `
       <button
         class="secondary"
-        style="width:100%;margin-bottom:6px"
+        style="width:100%;margin-bottom:4px;padding:4px;font-size:10px"
         onclick="addAbsence(${row.id},'${iso(date)}')">
         Volno
       </button>
@@ -686,11 +730,32 @@ absences.forEach(a => {
         background:${color};
         color:white;
         border-left:none;
+        position:relative;
       "
     >
+
+      <button
+        onclick="deleteAbsence(${a.id})"
+        style="
+          position:absolute;
+          top:4px;
+          right:4px;
+          border:none;
+          background:rgba(255,255,255,.2);
+          color:white;
+          border-radius:6px;
+          cursor:pointer;
+          padding:2px 6px;
+          font-size:11px;
+        "
+      >
+        ✕
+      </button>
+
       <div class="job-title">
         ${esc(a.type)}
       </div>
+
     </div>
   `;
 });
