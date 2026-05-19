@@ -493,10 +493,13 @@ function usedCapacity(row,ass,date){
   if(row.kind === "worker"){
 
     const hasAbsence = db.absences.some(a =>
-      Number(a.workerId) === Number(row.id) &&
-      a.date === iso(date)
-    );
-
+  Number(a.workerId) === Number(row.id) &&
+  a.date === (
+    typeof date === "string"
+      ? date
+      : iso(date)
+  )
+);
     if(hasAbsence){
       used += row.capacity;
     }
@@ -1242,8 +1245,11 @@ function startRealtime(){
         if(data?.data){
           db = data.data;
           if(!db.notes){
-  db.notes = [];
-}
+            db.notes = [];
+          }
+        if(!db.absences){
+          db.absences = [];
+        }
           render();
           setStatus("Aktualizováno z cloudu");
         }
