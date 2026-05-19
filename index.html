@@ -106,20 +106,23 @@ aside{
   border-radius:14px;
   overflow:visible;
   box-shadow:var(--shadow);
-  transform-origin:top left;}
+  }
 .head,.row{
   display:grid;
   grid-template-columns:280px repeat(7,220px);}
-  .head{
-  z-index:30;
+ .head{
+  position:sticky;
+  top:0;
+  z-index:50;
   background:#f8fbff;
+  box-shadow:0 2px 6px rgba(0,0,0,.08);
 }
 
 .head > div{
   position:sticky;
   top:0;
+  z-index:51;
   background:#f8fbff;
-  z-index:40;
 }
   .tabs{
   display:flex;
@@ -142,8 +145,10 @@ aside{
   .head > div:first-child{
   position:sticky;
   left:0;
-  z-index:20;
-  background:#f8fbff;}
+  top:0;
+  z-index:60;
+  background:#f8fbff;
+}
 .name-cell{
   min-height:150px;
   background:#fff;
@@ -153,7 +158,7 @@ aside{
   font-weight:400;
   position:sticky;
   left:0;
-  z-index:25;}
+  z-index:40;}
   .sub{
   font-size:12px;
   color:#607086;
@@ -163,6 +168,8 @@ aside{
 .name-cell strong{
   font-weight:800;}
 .cell{min-height:150px;background:#fff;padding:7px;border-right:1px solid var(--line);border-bottom:1px solid var(--line)}.cell.dragover{background:#eaf4ff;outline:3px solid #8bc5ff;outline-offset:-3px}
+.cell-absence{
+  background:#f8fafc;}
 .capacity{font-size:12px;color:var(--muted);margin-bottom:5px;display:flex;justify-content:space-between;gap:6px}.over{color:#b91c1c;font-weight:800}
 .job,.mini-card{border-radius:11px;padding:8px 9px;margin:0 0 7px;background:#e7f1ff;border-left:5px solid var(--blue);box-shadow:0 2px 6px rgba(0,0,0,.10)}
 .job{cursor:grab}.job:active{cursor:grabbing}.job.high{
@@ -245,12 +252,6 @@ aside{
 .grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}.full{grid-column:1/-1}label{font-size:13px;font-weight:700;color:#30435a}.actions{display:flex;gap:8px;justify-content:flex-end;margin-top:14px;flex-wrap:wrap}
 .small{font-size:12px;color:var(--muted)}.hidden{display:none!important}.quick-actions{display:flex;gap:6px;flex-wrap:wrap;margin-top:7px}.quick-actions button{padding:5px 7px;font-size:11px}
 
-@media(max-width:900px){
- .layout{display:flex;flex-direction:column;min-height:auto;}
- .aside{position:relative;top:auto;height:auto;}
- .board-wrap{overflow:auto;-webkit-overflow-scrolling:touch;touch-action:pan-x pan-y pinch-zoom;width:100%;}
- .board{width:max-content;min-width:max-content;}}
-
 @media(max-width:700px){
   #authBar{flex-direction:column;align-items:stretch!important;}
   #loginBox{width:100%;display:flex;flex-direction:column;}
@@ -262,52 +263,96 @@ aside{
   #currentUserBox{
     margin-left:0!important;
     text-align:center;}}
+@media(max-width:900px){
 
+  .layout{
+    display:flex;
+    flex-direction:column;
+    min-height:auto;
+  }
+  aside{
+    position:relative;
+    top:auto;
+    height:auto;
+  }
+  .board-wrap{
+    overflow:auto;
+    width:100%;
+    -webkit-overflow-scrolling:touch;
+  }
+  .board{
+    width:max-content;
+    min-width:max-content;
+  }
+  .head,.row{
+    grid-template-columns:160px repeat(7,125px);
+  }
+
+  .cell,
+  .name-cell{
+    min-height:100px;
+    padding:4px;
+  }
+
+  .job{
+    padding:5px;
+  }
+
+  .job-title{
+    font-size:10px;
+  }
+
+  .job-meta{
+    font-size:9px;
+  }
+
+  .badge{
+    font-size:8px;
+    padding:1px 4px;
+  }
+}
 @media(max-width:1200px){
   .board-wrap{
     min-height:1200px;}}
 
-@media(max-width:900px){
-  .board-wrap{
-    min-height:1000px;}
-  .head,.row{
-    grid-template-columns:180px repeat(7,140px);}
-  .cell,
-  .name-cell{
-    min-height:110px;}
-  .job{
-    padding:5px;}
-  .job-title{
-    font-size:11px;}
-  .job-meta{
-    font-size:10px;}
-  .badge{
-    font-size:9px;
-    padding:1px 4px;}}
-
 @media(max-width:600px){
-  .board-wrap{
-    min-height:850px;}
+
   .head,.row{
-    grid-template-columns:140px repeat(7,110px);}
+    grid-template-columns:120px repeat(7,95px);
+  }
+
   .cell,
   .name-cell{
-    min-height:90px;
-    padding:4px;}
+    min-height:85px;
+    padding:3px;
+    position:relative;
+  }
+
   .job{
-    margin-bottom:4px;
-    border-radius:7px;}
+    padding:4px;
+    margin-bottom:3px;
+    border-radius:7px;
+  }
+
   .job-title{
-    font-size:9px;
-    line-height:1.1;}
-  .job-meta{
     font-size:8px;
-    line-height:1.1;}
-  .badge{
+    line-height:1.1;
+  }
+
+  .job-meta{
     font-size:7px;
-    padding:1px 3px;}
+    line-height:1.1;
+  }
+
+  .badge{
+    font-size:6px;
+    padding:1px 2px;
+  }
+
   .progress{
-    height:5px;}}  
+    height:5px;
+  }
+}  
 
 </style>
 </head>
@@ -681,7 +726,7 @@ function renderBoard(){
      const used = usedCapacity(row,ass,date);
   html += `
     <div
-      class="cell"
+      class="cell ${hasAbsence ? "cell-absence" : ""}"
       data-row-kind="${row.kind}"
       data-row-id="${row.id}"
       data-date="${iso(date)}"
@@ -733,6 +778,7 @@ notes.forEach(note => {
 `;
 });
       const absences = db.absences.filter(x =>
+      const hasAbsence = absences.length > 0;
   Number(x.workerId) === Number(row.id) &&
   x.date === iso(date)
 );
@@ -847,12 +893,16 @@ function jobCard(j,a){
     p.over
       ?"red"
       :(p.pct>=85?"orange":"green");
-  return`<div class="job
-  ${priorityClass(j.priority)}
-  ${skillClass(j.skill)}
-  ${jobVisualState(j)}
-  ${mismatch ? "skill-mismatch" : ""}
-" ${jobVisualState(j)} ${mismatch?"skill-mismatch":""}" draggable="true" data-job-id="${j.id}" data-assignment-id="${a?a.id:""}" ondragstart="dragJob(event)" ondblclick="${a?`openAssignment(${a.id})`:`openJob(${j.id})`}"><div class="job-title">${esc(j.title)}</div><div class="job-meta">${esc(j.address||"")}</div><div class="job-meta">${esc(j.contact||"")} ${esc(j.phone||"")}</div><div class="badges"><span class="badge">${esc(j.state||"Nová")}</span><span class="badge ${badgeClass}">${p.actual.toFixed(2)}/${p.estimated||0} hod.</span>${j.skill&&j.skill!=="Bez požadavku"?`<span class="badge skill">Pož.: ${esc(j.skill)}</span>`:""}${leadWorker ? `
+return `
+<div
+  class="
+    job
+    ${priorityClass(j.priority)}
+    ${skillClass(j.skill)}
+    ${jobVisualState(j)}
+    ${mismatch ? "skill-mismatch" : ""}
+  " 
+  draggable="true" data-job-id="${j.id}" data-assignment-id="${a?a.id:""}" ondragstart="dragJob(event)" ondblclick="${a?`openAssignment(${a.id})`:`openJob(${j.id})`}"><div class="job-title">${esc(j.title)}</div><div class="job-meta">${esc(j.address||"")}</div><div class="job-meta">${esc(j.contact||"")} ${esc(j.phone||"")}</div><div class="badges"><span class="badge">${esc(j.state||"Nová")}</span><span class="badge ${badgeClass}">${p.actual.toFixed(2)}/${p.estimated||0} hod.</span>${j.skill&&j.skill!=="Bez požadavku"?`<span class="badge skill">Pož.: ${esc(j.skill)}</span>`:""}${leadWorker ? `
   <span class="badge">
     ⭐ Vedoucí: ${esc(leadWorker.title)}
   </span>
@@ -915,6 +965,17 @@ async function dropJob(ev){
   }
   a.date = date;
   if(rowKind === "worker"){
+    const hasAbsence = db.absences.some(x =>
+  Number(x.workerId) === Number(rowId) &&
+  x.date === date
+);
+
+if(hasAbsence){
+
+  alert("Pracovník má v tento den volno.");
+
+  return;
+}
     a.workerId = rowId;
     const w = workerById(rowId);
     if(w && !workerHasSkill(w, job.skill)){
