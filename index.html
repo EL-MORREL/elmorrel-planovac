@@ -367,7 +367,8 @@ let db = {
   workers: [],
   vehicles: [],
   assignments: [],
-  notes: []
+  notes: [],
+  absences: []
 };
 let weekStart = monday(new Date());
 let selectedJobId = null;
@@ -519,6 +520,25 @@ async function deleteDayNote(noteId){
   await saveDb();
   render();
 }
+async function addAbsence(workerId,date){
+
+  const type = prompt(
+    "Typ volna:\n\nDovolená\nNemoc\nŠkolení\nHome office\nVolno"
+  );
+
+  if(!type) return;
+
+  db.absences.push({
+    id: nextId(db.absences),
+    workerId,
+    date,
+    type
+  });
+
+  await saveDb();
+
+  render();
+}
 async function editExistingNote(noteId){
 
   const note = db.notes.find(
@@ -599,11 +619,20 @@ function renderBoard(){
             <span>${used}/${row.capacity} hod.</span>
             <span>${used > row.capacity ? "PŘETÍŽENO" : ""}</span>
           </div>
+          
           ${row.kind === "worker" ? `
   <button
     class="day-note-add"
     onclick="editDayNote(${row.id},'${iso(date)}')">
     📝 Přidat poznámku
+  </button>
+` : ""}
+ ${row.kind === "worker" ? `
+  <button
+    class="secondary"
+    style="width:100%;margin-bottom:6px"
+    onclick="addAbsence(${row.id},'${iso(date)}')">
+    Volno
   </button>
 ` : ""}
       `;
@@ -626,6 +655,42 @@ notes.forEach(note => {
     </button>
   </div>
 `;
+});
+      const absences = db.absences.filter(x =>
+  Number(x.workerId) === Number(row.id) &&
+  x.date === iso(date)
+);
+
+absences.forEach(a => {
+
+  let color = "#94a3b8";
+
+  if(a.type.includes("Dovolená")){
+    color = "#0ea5e9";
+  }
+
+  if(a.type.includes("Nemoc")){
+    color = "#dc2626";
+  }
+
+  if(a.type.includes("Školení")){
+    color = "#8b5cf6";
+  }
+
+  html += `
+    <div
+      class="job"
+      style="
+        background:${color};
+        color:white;
+        border-left:none;
+      "
+    >
+      <div class="job-title">
+        ${esc(a.type)}
+      </div>
+    </div>
+  `;
 });
       ass.forEach(a => {
         const j = jobById(a.jobId);
