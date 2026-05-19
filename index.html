@@ -565,7 +565,6 @@ function renderBoard(){
       html += `
         <div
           class="cell"
-          ondblclick="editDayNote(${row.id},'${iso(date)}')"
           data-row-kind="${row.kind}"
           data-row-id="${row.id}"
           data-date="${iso(date)}"
@@ -1106,7 +1105,7 @@ async function register(){
   }
   alert("Uživatel vytvořen");
 }
-async function login() 
+async function login(){ 
   const email = loginEmail.value;
   const password = loginPassword.value;
   const { data, error } = await supabaseClient.auth.signInWithPassword({
