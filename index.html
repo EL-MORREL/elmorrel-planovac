@@ -91,6 +91,7 @@ aside{
   height:calc(100vh - 108px);}
 .board-wrap{
   overflow:auto;
+  max-height:calc(100vh - 120px);
   padding:12px;
   width:100%;
   min-width:0;
@@ -123,6 +124,7 @@ aside{
   top:0;
   z-index:51;
   background:#f8fbff;
+  box-shadow:0 1px 0 #dbe3ef;
 }
   .tabs{
   display:flex;
@@ -173,7 +175,11 @@ aside{
 .capacity{font-size:12px;color:var(--muted);margin-bottom:5px;display:flex;justify-content:space-between;gap:6px}.over{color:#b91c1c;font-weight:800}
 .job,.mini-card{border-radius:11px;padding:8px 9px;margin:0 0 7px;background:#e7f1ff;border-left:5px solid var(--blue);box-shadow:0 2px 6px rgba(0,0,0,.10)}
 .job{cursor:grab}.job:active{cursor:grabbing}.job.high{
-  border-left-color:var(--red);
+  border-left-color:var(--red);opacity:.9;
+}
+.cell-absence.dragover{
+  outline:none!important;
+  background:#f8fafc!important;
 }
 .job.medium{
   border-left-color:var(--orange);
@@ -724,6 +730,12 @@ function renderBoard(){
         );
       }
      const used = usedCapacity(row,ass,date);
+     const absences = db.absences.filter(x =>
+  Number(x.workerId) === Number(row.id) &&
+  x.date === iso(date)
+);
+
+const hasAbsence = absences.length > 0;
   html += `
     <div
       class="cell ${hasAbsence ? "cell-absence" : ""}"
@@ -777,8 +789,6 @@ notes.forEach(note => {
   </div>
 `;
 });
-      const absences = db.absences.filter(x =>
-      const hasAbsence = absences.length > 0;
   Number(x.workerId) === Number(row.id) &&
   x.date === iso(date)
 );
