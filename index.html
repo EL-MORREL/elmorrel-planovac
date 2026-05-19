@@ -165,7 +165,38 @@ aside{
 .cell{min-height:150px;background:#fff;padding:7px;border-right:1px solid var(--line);border-bottom:1px solid var(--line)}.cell.dragover{background:#eaf4ff;outline:3px solid #8bc5ff;outline-offset:-3px}
 .capacity{font-size:12px;color:var(--muted);margin-bottom:5px;display:flex;justify-content:space-between;gap:6px}.over{color:#b91c1c;font-weight:800}
 .job,.mini-card{border-radius:11px;padding:8px 9px;margin:0 0 7px;background:#e7f1ff;border-left:5px solid var(--blue);box-shadow:0 2px 6px rgba(0,0,0,.10)}
-.job{cursor:grab}.job:active{cursor:grabbing}.job.high{background:#fee2e2;border-left-color:var(--red)}.job.medium{background:#fff4d6;border-left-color:var(--orange)}.job.low{background:#dcfce7;border-left-color:var(--green)}
+.job{cursor:grab}.job:active{cursor:grabbing}.job.high{
+  border-left-color:var(--red);
+}
+.job.medium{
+  border-left-color:var(--orange);
+}
+.job.low{
+  border-left-color:var(--green);
+}
+.job.skill-elektro{
+  background:#fef3c7;
+}
+
+.job.skill-optika{
+  background:#cffafe;
+}
+
+.job.skill-servis{
+  background:#fee2e2;
+}
+
+.job.skill-montaz{
+  background:#dcfce7;
+}
+
+.job.skill-revize{
+  background:#ede9fe;
+}
+
+.job.skill-kancelar{
+  background:#e2e8f0;
+}  
 .job.done{opacity:.72}.job.invoiced{opacity:.58}.job.skill-mismatch{outline:2px solid var(--red)}
 .job-title{font-weight:800;font-size:13px;line-height:1.2}
 .job-meta{font-size:12px;color:#40546c;margin-top:3px;line-height:1.25}
@@ -776,6 +807,24 @@ absences.forEach(a => {
     return html;
   }).join("");
 }
+function skillClass(skill){
+
+  if(!skill) return "";
+
+  if(skill.includes("Elektro")) return "skill-elektro";
+
+  if(skill.includes("Optika")) return "skill-optika";
+
+  if(skill.includes("Servis")) return "skill-servis";
+
+  if(skill.includes("Montáž")) return "skill-montaz";
+
+  if(skill.includes("Revize")) return "skill-revize";
+
+  if(skill.includes("Kancelář")) return "skill-kancelar";
+
+  return "";
+}
 function jobCard(j,a){
   const worker = a ? workerById(a.workerId) : null;
   const vehicle = a ? vehicleById(a.vehicleId) : null;
@@ -804,7 +853,12 @@ function jobCard(j,a){
     p.over
       ?"red"
       :(p.pct>=85?"orange":"green");
-  return`<div class="job ${priorityClass(j.priority)} ${jobVisualState(j)} ${mismatch?"skill-mismatch":""}" draggable="true" data-job-id="${j.id}" data-assignment-id="${a?a.id:""}" ondragstart="dragJob(event)" ondblclick="${a?`openAssignment(${a.id})`:`openJob(${j.id})`}"><div class="job-title">${esc(j.title)}</div><div class="job-meta">${esc(j.address||"")}</div><div class="job-meta">${esc(j.contact||"")} ${esc(j.phone||"")}</div><div class="badges"><span class="badge">${esc(j.state||"Nová")}</span><span class="badge ${badgeClass}">${p.actual.toFixed(2)}/${p.estimated||0} hod.</span>${j.skill&&j.skill!=="Bez požadavku"?`<span class="badge skill">Pož.: ${esc(j.skill)}</span>`:""}${leadWorker ? `
+  return`<div class="job
+  ${priorityClass(j.priority)}
+  ${skillClass(j.skill)}
+  ${jobVisualState(j)}
+  ${mismatch ? "skill-mismatch" : ""}
+" ${jobVisualState(j)} ${mismatch?"skill-mismatch":""}" draggable="true" data-job-id="${j.id}" data-assignment-id="${a?a.id:""}" ondragstart="dragJob(event)" ondblclick="${a?`openAssignment(${a.id})`:`openJob(${j.id})`}"><div class="job-title">${esc(j.title)}</div><div class="job-meta">${esc(j.address||"")}</div><div class="job-meta">${esc(j.contact||"")} ${esc(j.phone||"")}</div><div class="badges"><span class="badge">${esc(j.state||"Nová")}</span><span class="badge ${badgeClass}">${p.actual.toFixed(2)}/${p.estimated||0} hod.</span>${j.skill&&j.skill!=="Bez požadavku"?`<span class="badge skill">Pož.: ${esc(j.skill)}</span>`:""}${leadWorker ? `
   <span class="badge">
     ⭐ Vedoucí: ${esc(leadWorker.title)}
   </span>
