@@ -96,7 +96,8 @@ aside{
   min-width:0;
   -webkit-overflow-scrolling:touch;
   touch-action:pan-x pan-y pinch-zoom;
-  overscroll-behavior-x:contain;}
+  overscroll-behavior-x:contain;position:relative;
+}
 .board{
   min-width:max-content;
   width:max-content;
@@ -109,16 +110,17 @@ aside{
 .head,.row{
   display:grid;
   grid-template-columns:280px repeat(7,220px);}
-.head{
-  position:sticky;
-  top:0;
+  .head{
   z-index:30;
-  background:#f8fbff;}
-  .head > div{
+  background:#f8fbff;
+}
+
+.head > div{
   position:sticky;
   top:0;
   background:#f8fbff;
-  z-index:30;}
+  z-index:40;
+}
   .tabs{
   display:flex;
   gap:6px;
@@ -649,39 +651,42 @@ function renderBoard(){
         );
       }
      const used = usedCapacity(row,ass,date);
-      html += `
-  <div
-    class="cell"
-    data-row-kind="${row.kind}"
-    data-row-id="${row.id}"
-    data-date="${iso(date)}"
-    ondragover="allowDrop(event)"
-    ondragleave="leaveDrop(event)"
-    ondrop="dropJob(event)"
-  >
 
-    <div class="capacity ${used > row.capacity ? "over" : ""}">
-      <span>${used}/${row.capacity} hod.</span>
-      <span>${used > row.capacity ? "PŘETÍŽENO" : ""}</span>
-    </div>
+ const used = usedCapacity(row,ass,date);
 
-    ${row.kind === "worker" ? `
-      <button
-        class="secondary"
-        style="width:100%;margin-bottom:4px;padding:4px;font-size:10px"
-        onclick="addAbsence(${row.id},'${iso(date)}')">
-        Volno
-      </button>
-    ` : ""}
-
-    ${row.kind === "worker" ? `
-      <button
-        class="day-note-add"
-        onclick="editDayNote(${row.id},'${iso(date)}')">
-        📝 Přidat poznámku
-      </button>
-    ` : ""}
-`;
+  html += `
+    <div
+      class="cell"
+      data-row-kind="${row.kind}"
+      data-row-id="${row.id}"
+      data-date="${iso(date)}"
+      ondragover="allowDrop(event)"
+      ondragleave="leaveDrop(event)"
+      ondrop="dropJob(event)"
+    >
+  
+      <div class="capacity ${used > row.capacity ? "over" : ""}">
+        <span>${used}/${row.capacity} hod.</span>
+        <span>${used > row.capacity ? "PŘETÍŽENO" : ""}</span>
+      </div>
+  
+      ${row.kind === "worker" ? `
+        <button
+          class="secondary"
+          style="width:100%;margin-bottom:4px;padding:4px;font-size:10px"
+          onclick="addAbsence(${row.id},'${iso(date)}')">
+          Volno
+        </button>
+      ` : ""}
+  
+      ${row.kind === "worker" ? `
+        <button
+          class="day-note-add"
+          onclick="editDayNote(${row.id},'${iso(date)}')">
+          📝 Přidat poznámku
+        </button>
+      ` : ""}
+  `;
       const notes =
   row.kind === "worker"
     ? getDayNotes(row.id, iso(date))
