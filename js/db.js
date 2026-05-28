@@ -1,4 +1,16 @@
-function createEmptyDb(){return{jobs:[],workers:[],vehicles:[],assignments:[],notes:[],absences:[]}}
+let savingDb = false;
+function createEmptyDb(){
+  return{
+    jobs:[],
+    workers:[],
+    vehicles:[],
+    assignments:[],
+    notes:[],
+    absences:[],
+    vehicleAbsences:[]
+  }
+}
+
 async function loadDb(){
   if(!currentUser) return;
 
@@ -30,7 +42,9 @@ async function loadDb(){
   if(!db.absences){
     db.absences = [];
   }
-
+  if(!db.vehicleAbsences){
+  db.vehicleAbsences = [];
+}
   // migrace starých procent na hodiny
   db.workers.forEach(w => {
     if(w.capacity === 100){
@@ -43,34 +57,54 @@ async function loadDb(){
       v.capacity = 10;
     }
   });
-
-  render();
+render();
 }
 async function saveDb(){
 
-  if(!currentUser){
-    alert("Nejste přihlášen");
+  if(savingDb){
+    console.warn("SAVE SKIPPED");
     return false;
   }
 
-  const payload = {
-    data: JSON.parse(JSON.stringify(db)),
-    updated_by: currentUser.email,
-    updated_at: new Date().toISOString()
-  };
+  savingDb = true;
 
-  const { error } = await supabaseClient
-    .from("app_state")
-    .update(payload)
-    .eq("id", 1);
+  try{
 
-  if(error){
-    console.error("SAVE ERROR:", error);
-    alert("Chyba ukládání: " + error.message);
-    return false;
+    if(!currentUser){
+      alert("Nejste přihlášen");
+      return false;
+    }
+
+    const payload = {
+      data: JSON.parse(JSON.stringify(db)),
+      updated_by: currentUser.email,
+      updated_at: new Date().toISOString()
+    };
+
+    const { error } = await supabaseClient
+      .from("app_state")
+      .update(payload)
+      .eq("id", 1);
+
+    if(error){
+      console.error("SAVE ERROR:", error);
+      alert("Chyba ukládání: " + error.message);
+      return false;
+    }
+
+    setStatus("Uloženo do cloudu");
+
+    setTimeout(async () => {
+
+  await loadDb();
+
+}, 150);
+
+return true;
+
+  }finally{
+
+    savingDb = false;
+
   }
-
-  setStatus("Uloženo do cloudu");
-
-  return true;
 }
