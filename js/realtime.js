@@ -1,3 +1,4 @@
+let draggingNow = false;
 let realtimeChannel = null;
 
 async function startRealtime() {
@@ -14,30 +15,47 @@ async function startRealtime() {
     .on(
       "postgres_changes",
       {
-        event: "UPDATE",
+        event: "*",
         schema: "public",
         table: "app_state"
       },
-      (payload) => {
+     (payload) => {
 
-        console.log("Realtime payload:", payload);
+  console.log("Realtime payload:", payload);
 
-        if (!payload.new?.data) return;
+  if (!payload.new?.data) return;
 
-        db = payload.new.data;
+  const incoming = payload.new.data;
 
-        if (!db.notes) {
-          db.notes = [];
-        }
+if(
+  JSON.stringify(incoming) ===
+  JSON.stringify(db)
+){
+  return;
+}
+if(draggingNow){
+  return;
+}
+db = incoming;
 
-        if (!db.absences) {
-          db.absences = [];
-        }
+  if (!db.notes) {
+    db.notes = [];
+  }
 
-        render();
+  if (!db.absences) {
+    db.absences = [];
+  }
 
-        setStatus("Aktualizováno z cloudu");
-      }
+  if (!db.vehicleAbsences) {
+    db.vehicleAbsences = [];
+  }
+
+  setTimeout(() => {
+  render();
+}, 50);
+
+  setStatus("Aktualizováno z cloudu");
+}
     )
     .subscribe((status) => {
       console.log("Realtime status:", status);
