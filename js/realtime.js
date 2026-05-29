@@ -36,6 +36,11 @@ if(
 if(draggingNow){
   return;
 }
+console.log(
+  "Realtime update",
+  incoming.jobs?.length,
+  "zakázek"
+);       
 db = incoming;
 
   if (!db.notes) {
