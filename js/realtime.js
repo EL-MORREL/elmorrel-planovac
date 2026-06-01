@@ -34,6 +34,12 @@ if(
   return;
 }
 if(draggingNow){
+
+  setTimeout(() => {
+    db = incoming;
+    render();
+  }, 1000);
+
   return;
 }
 console.log(
