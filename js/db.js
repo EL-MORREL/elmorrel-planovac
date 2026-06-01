@@ -117,7 +117,9 @@ const payload = {
       return false;
     }
 
-    setStatus("Uloženo do cloudu");
+    dbVersion = payload.updated_at;
+
+setStatus("Uloženo do cloudu");
 
 return true;
 
