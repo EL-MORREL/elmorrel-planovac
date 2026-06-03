@@ -44,3 +44,13 @@ function isHoliday(dateStr){
 function isMobile(){
   return window.innerWidth <= 900;
 }
+function vehiclesForJobDate(jobId,date){
+
+  return db.assignmentVehicles.filter(x =>
+
+    Number(x.job_id) === Number(jobId) &&
+    x.date === date
+
+  );
+
+}
