@@ -58,7 +58,7 @@ header{
   #currentUserBox{
     text-align:center;
     margin-left:0!important;  }}
-header h1{font-size:20px;margin:0}.right{font-size:13px;opacity:.95}
+header h1{font-size:16px;margin:0}.right{font-size:11px;opacity:.95}
 .toolbar{min-height:50px;background:#fff;border-bottom:1px solid var(--line);display:flex;align-items:center;gap:8px;padding:9px 12px;flex-wrap:wrap}
 button{border:0;border-radius:8px;background:var(--blue);color:#fff;padding:9px 12px;font-weight:650;cursor:pointer}
 button:hover{background:var(--blue2)}button.secondary{background:#e8eef7;color:#152033}button.secondary:hover{background:#dce6f3}button.danger{background:var(--red)}
@@ -125,9 +125,9 @@ aside{
   padding:12px;
   border-right:1px solid var(--line);
   border-bottom:1px solid var(--line);
-  font-weight:800;
+  font-weight:600;
   text-align:center;
-
+  font-size:11px;
   position:sticky;
   top:0;
   z-index:51;
@@ -280,7 +280,7 @@ aside{
 }  
 .job.done{opacity:.72}.job.invoiced{opacity:.58}
 .job.skill-mismatch{outline:2px solid var(--red)}
-.job-title{font-weight:800;font-size:9px;line-height:1.2}
+.job-title{font-weight:800;font-size:12px;line-height:1.2}
 .job-meta{font-size:8px;color:#40546c;margin-top:3px;line-height:1.25}
 .badges{display:flex;flex-wrap:wrap;gap:2px;margin-top:4px}
 .badge{font-size:7px;background:rgba(255,255,255,.75);border:1px solid rgba(0,0,0,.08);border-radius:99px;padding:2px 6px}
@@ -327,11 +327,11 @@ aside{
 .day-note-add:hover{
   background:#e5e7eb;}
 .job-note{
-  margin-top:6px;
-  padding:6px;
-  border-radius:8px;
+  margin-top:4px;
+  padding:4px;
+  border-radius:6px;
   background:#fff8dc;
-  font-size:12px;
+  font-size:10px;
   line-height:1.4;
   white-space:pre-wrap;
 }
@@ -339,7 +339,7 @@ aside{
   display:flex;
   justify-content:space-between;
   align-items:flex-start;
-  gap:6px;
+  gap:8px;
 }
 
 .job-hours{
