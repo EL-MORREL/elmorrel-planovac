@@ -7,9 +7,11 @@ function createEmptyDb(){
     workers:[],
     vehicles:[],
     assignments:[],
+    assignmentVehicles:[],
     notes:[],
     absences:[],
     vehicleAbsences:[]
+    
   }
 }
 
@@ -29,14 +31,22 @@ async function loadDb(){
     return;
   }
 
-  if(data?.data){
-    db = data.data;
-     dbVersion = data.updated_at;
-  }else{
-    db = createEmptyDb();
-    await saveDb();
-  }
+ if(data?.data){
+  db = data.data;
+  dbVersion = data.updated_at;
+}else{
+  db = createEmptyDb();
+  await saveDb();
+}
 
+db.jobs = await loadJobsTable();
+db.workers = await loadWorkersTable();
+db.vehicles = await loadVehiclesTable();
+db.assignments = await loadAssignmentsTable();
+db.assignmentVehicles = await loadAssignmentVehiclesTable();
+db.notes = await loadNotesTable();
+db.absences = await loadAbsencesTable();
+db.vehicleAbsences = await loadVehicleAbsencesTable();
   // DOPLNIT ↓↓↓
 
   if(!db.notes){
@@ -100,8 +110,19 @@ if(
   return false;
 }
 
+const dbForSave =
+  JSON.parse(JSON.stringify(db));
+
+delete dbForSave.jobs;
+delete dbForSave.workers;
+delete dbForSave.vehicles;
+delete dbForSave.assignments;
+delete dbForSave.notes;
+delete dbForSave.absences;
+delete dbForSave.vehicleAbsences;
+
 const payload = {
-  data: JSON.parse(JSON.stringify(db)),
+  data: dbForSave,
   updated_by: currentUser.email,
   updated_at: new Date().toISOString()
 };
