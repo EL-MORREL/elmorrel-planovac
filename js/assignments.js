@@ -63,13 +63,16 @@ async function editDayNote(workerId,date){
   const text = prompt("Nová poznámka:");
   if(!text){
     return;}
-  db.notes.push({
-    id: Date.now(),
-    workerId,
-    date,
-    text
-  });
-  await saveDb();
+  const note = {
+  id: Date.now(),
+  workerId,
+  date,
+  text
+};
+
+db.notes.push(note);
+
+await upsertNoteTable(note);
   render();}
 
 async function deleteDayNote(noteId){
@@ -80,7 +83,7 @@ async function deleteDayNote(noteId){
     return;}
   db.notes = db.notes.filter(
     n => Number(n.id) !== Number(noteId));
-  await saveDb();
+  await deleteNoteTable(noteId);
   render();}
 
 async function addAbsence(workerId,date){
@@ -94,14 +97,16 @@ async function addAbsence(workerId,date){
 
   if(!type) return;
 
-  db.absences.push({
-    id: nextId(db.absences),
-    workerId,
-    date,
-    type
-  });
+  const absence = {
+  id: nextId(db.absences),
+  workerId,
+  date,
+  type
+};
 
-  await saveDb();
+db.absences.push(absence);
+
+await upsertAbsenceTable(absence);
 
   render();
 }
@@ -209,7 +214,7 @@ async function deleteAbsence(id){
     return;}
   db.absences = db.absences.filter(
     a => Number(a.id) !== Number(id));
-  await saveDb();
+  await deleteAbsenceTable(id);
   render();}
 
 async function editExistingNote(noteId){
@@ -225,7 +230,7 @@ async function editExistingNote(noteId){
   if(text === null){
     return;}
   note.text = text;
-  await saveDb();
+  await upsertNoteTable(note);
   render();}  
 
 function dragJob(ev){
@@ -275,20 +280,23 @@ async function dropJob(ev){
   let a = assignmentId
     ? assignmentById(assignmentId)
     : null;
-  if(!a){
-    a = {
-      id: nextId(db.assignments),
-      jobId,
-      workerId: null,
-      vehicleId: null,
-      date,
-      load: Number(job.load || 10),
-      vehicleLoad: Number(job.vehicleLoad || 10),
-      note: "",
-      invoiced:false
-    };
-    db.assignments.push(a);
-  }
+ if(!a){
+  a = {
+    id: nextId(db.assignments),
+    jobId,
+    workerId: null,
+    vehicleId: null,
+    date,
+    load: Number(job.load || 10),
+    vehicleLoad: Number(job.vehicleLoad || 10),
+    note: "",
+    invoiced:false
+  };
+
+  db.assignments.push(a);
+
+  await upsertAssignmentTable(a);
+}
   a.date = date;
   if(rowKind === "worker"){
     const hasAbsence = db.absences.some(x =>
@@ -361,7 +369,7 @@ if(otherJobUsingVehicle){
   
   try{
 
-  await saveDb();
+  await upsertAssignmentTable(a);
 
   render();
 
@@ -395,8 +403,32 @@ function openAssignment(id){ selectedAssignmentId = id;
                             a_vehicle_load.value = a.vehicleLoad || 10; 
                             a_worker.innerHTML = `<option value="">Bez pracovníka</option>` + db.workers.map(w => ` <option value="${w.id}"> ${esc(w.title)} </option> `).join(""); 
                             a_worker.value = a.workerId || ""; 
-                            a_vehicle.innerHTML = `<option value="">Bez vozidla</option>` + db.vehicles.map(v => ` <option value="${v.id}"> ${esc(v.title)} ${v.spz ? "· " + esc(v.spz) : ""} </option> `).join(""); 
-                            a_vehicle.value = a.vehicleId || ""; a_note.value = a.note || ""; document.getElementById( "a_invoiced" ).checked = !!a.invoiced; openModal("assignModal"); }
+                           a_vehicle.innerHTML =
+                                db.vehicles.map(v => `
+                                  <option value="${v.id}">
+                                    ${esc(v.title)}
+                                    ${v.spz ? "· " + esc(v.spz) : ""}
+                                  </option>
+                                `).join("");
+                              
+                              const assignedVehicles =
+                                vehiclesForJobDate(
+                                  a.jobId,
+                                  a.date
+                                );
+                              
+                              const selectedVehicleIds =
+                                assignedVehicles.map(x =>
+                                  Number(x.vehicle_id)
+                                );
+                              
+                              Array.from(a_vehicle.options).forEach(opt => {
+                                opt.selected =
+                                  selectedVehicleIds.includes(
+                                    Number(opt.value)
+                                  );
+                              }); 
+                            a_note.value = a.note || ""; document.getElementById( "a_invoiced" ).checked = !!a.invoiced; openModal("assignModal"); }
 
 async function saveAssignmentFromModal(){
   if(!canEdit){
@@ -409,25 +441,73 @@ async function saveAssignmentFromModal(){
     ? Number(a_worker.value)
     : null;
   a.load = Number(a_load.value || 10);
-  a.vehicleId = a_vehicle.value
-    ? Number(a_vehicle.value)
-    : null;
-      db.assignments.forEach(x => {
-  if(Number(x.jobId) === Number(a.jobId) && x.date === a.date
-  ){a.vehicleLoad = Number(a_vehicle_load.value || 10); 
-    x.vehicleId = a.vehicleId;
-    x.vehicleLoad = a.vehicleLoad;}});
-  a.note = a_note.value.trim();
- a.invoiced = document.getElementById( "a_invoiced" ).checked;
-  if(!a.workerId && !a.vehicleId){
-    db.assignments = db.assignments.filter(
-      x => Number(x.id) !== Number(a.id));
+  const selectedVehicleIds =
+  Array.from(
+    a_vehicle.selectedOptions
+  ).map(x => Number(x.value));
+
+a.vehicleLoad =
+  Number(a_vehicle_load.value || 10);
+
+db.assignments.forEach(x => {
+
+  if(
+    Number(x.jobId) === Number(a.jobId) &&
+    x.date === a.date
+  ){
+    x.vehicleLoad = a.vehicleLoad;
   }
 
-  await saveDb();
-  closeModal("assignModal");
-  render();
+});
+  a.note = a_note.value.trim();
+
+const invoicedValue =
+  document.getElementById("a_invoiced").checked;
+
+db.assignments.forEach(x => {
+
+  if(
+    Number(x.jobId) === Number(a.jobId) &&
+    x.date === a.date
+  ){
+    x.invoiced = invoicedValue;
+  }
+
+});
+  if(!a.workerId){
+
+  db.assignments = db.assignments.filter(
+    x => Number(x.id) !== Number(a.id)
+  );
+
+  await deleteAssignmentTable(a.id);
+
+}else{
+
+  const sameJobSameDay =
+    db.assignments.filter(x =>
+      Number(x.jobId) === Number(a.jobId) &&
+      x.date === a.date
+    );
+
+  for(const item of sameJobSameDay){
+    await upsertAssignmentTable(item);
+  }
+
 }
+await setAssignmentVehiclesTable(
+  a.jobId,
+  a.date,
+  selectedVehicleIds
+);
+
+db.assignmentVehicles =
+  await loadAssignmentVehiclesTable();
+closeModal("assignModal");
+render();
+}  
+
+
 async function unassignCurrent(){
   if(!canEdit){
     alert("Nemáte oprávnění k úpravám");
@@ -435,11 +515,15 @@ async function unassignCurrent(){
   }
   if(!selectedAssignmentId) return;
   db.assignments = db.assignments.filter(
-    a => Number(a.id) !== Number(selectedAssignmentId)
-  );
-  await saveDb();
-  closeModal("assignModal");
-  render();
+  a => Number(a.id) !== Number(selectedAssignmentId)
+);
+
+await deleteAssignmentTable(
+  selectedAssignmentId
+);
+
+closeModal("assignModal");
+render();
 }
 async function addVehicleAbsence(
   vehicleId,
@@ -458,14 +542,16 @@ async function addVehicleAbsence(
 
   if(!type) return;
 
-  db.vehicleAbsences.push({
+  const absence = {
     id: nextId(db.vehicleAbsences),
     vehicleId,
     date,
     type
-  });
+  };
 
-  await saveDb();
+  db.vehicleAbsences.push(absence);
+
+  await upsertVehicleAbsenceTable(absence);
 
   render();
 }
