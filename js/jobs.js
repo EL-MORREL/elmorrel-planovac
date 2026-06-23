@@ -118,6 +118,27 @@ await upsertJobTable(job);
   closeModal("jobModal");
   render();
 }
+async function setJobState(state){
+  if(!canEdit){
+    alert("Nemáte oprávnění k úpravám");
+    return;
+  }
+
+  if(!selectedJobId) return;
+
+  const j = jobById(selectedJobId);
+  if(!j) return;
+
+  j.state = state;
+  j.invoiced = state === "Vyfakturováno";
+  j.updatedAt = new Date().toISOString();
+  j.updatedBy = currentUser?.email || "neznámý";
+
+  await upsertJobTable(j);
+
+  closeModal("jobModal");
+  render();
+}
 async function deleteJob(){
   if(!canEdit){
     alert("Nemáte oprávnění k úpravám");
