@@ -15,7 +15,6 @@ function jobProgress(j){const estimated=Math.max(Number(j.estimated||0),0),actua
   : 0;let color="#16a34a";if(pct>100)color="#dc2626";else if(pct>=85)color="#d97706";return{estimated,actual,pct,color,over:estimated>0&&actual>estimated}}
 function isArchiveState(j){
   return [
-    "Dokončeno",
     "Storno"
   ].includes(j.state)
 }
@@ -25,11 +24,15 @@ function matchesFilter(j){
   const p = jobProgress(j);
 
   if(f === "active"){
-    return !isArchiveState(j) && j.state !== "Vyfakturováno";
+    return j.state !== "Dokončeno"
+        && j.state !== "Vyfakturováno"
+        && j.state !== "Storno";
   }
 
   if(f === "archive"){
-    return isArchiveState(j) || j.state === "Vyfakturováno";
+    return j.state === "Dokončeno"
+        || j.state === "Vyfakturováno"
+        || j.state === "Storno";
   }
 
   if(f === "to_invoice"){
