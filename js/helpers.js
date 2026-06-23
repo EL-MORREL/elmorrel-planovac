@@ -13,7 +13,12 @@ function plannedUnits(jobId){
 function jobProgress(j){const estimated=Math.max(Number(j.estimated||0),0),actual=plannedUnits(j.id),pct = estimated > 0
   ? Math.round((actual / estimated) * 100)
   : 0;let color="#16a34a";if(pct>100)color="#dc2626";else if(pct>=85)color="#d97706";return{estimated,actual,pct,color,over:estimated>0&&actual>estimated}}
-function isArchiveState(j){return["Dokončeno","Vyfakturováno","Storno"].includes(j.state)}
+function isArchiveState(j){
+  return [
+    "Dokončeno",
+    "Storno"
+  ].includes(j.state)
+}
 function matchesSearch(j){const q=document.getElementById("search").value.trim().toLowerCase();if(!q)return true;return[j.title,j.address,j.contact,j.phone,j.note,j.state,j.skill].join(" ").toLowerCase().includes(q)}
 function matchesFilter(j){const f=document.getElementById("jobFilter").value,p=jobProgress(j);if(f==="active")return!isArchiveState(j);if(f==="archive")return isArchiveState(j);if(f==="to_invoice")return j.state==="Dokončeno";if(f==="overrun")return p.over;return true}
 const holidays = [
