@@ -162,18 +162,12 @@ function renderBoard(){
     r.forEach(row => {
 
       let ass = assignmentsFor(row,date).filter(a => {
-        const j = jobById(a.jobId);
-        return j &&
-          matchesFilter(j) &&
-          matchesSearch(j);
-      });
+  const j = jobById(a.jobId);
 
-      if(jobFilter.value === "active"){
-        ass = ass.filter(a =>
-          !isArchiveState(jobById(a.jobId))
-        );
-      }
-
+  return j &&
+    j.state !== "Storno" &&
+    matchesSearch(j);
+});
       const used =
         usedCapacity(row,ass,date);
 
