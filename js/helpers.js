@@ -20,7 +20,28 @@ function isArchiveState(j){
   ].includes(j.state)
 }
 function matchesSearch(j){const q=document.getElementById("search").value.trim().toLowerCase();if(!q)return true;return[j.title,j.address,j.contact,j.phone,j.note,j.state,j.skill].join(" ").toLowerCase().includes(q)}
-function matchesFilter(j){const f=document.getElementById("jobFilter").value,p=jobProgress(j);if(f==="active")return!isArchiveState(j);if(f==="archive")return isArchiveState(j);if(f==="to_invoice")return j.state==="Dokončeno";if(f==="overrun")return p.over;return true}
+function matchesFilter(j){
+  const f = document.getElementById("jobFilter").value;
+  const p = jobProgress(j);
+
+  if(f === "active"){
+    return !isArchiveState(j) && j.state !== "Vyfakturováno";
+  }
+
+  if(f === "archive"){
+    return isArchiveState(j) || j.state === "Vyfakturováno";
+  }
+
+  if(f === "to_invoice"){
+    return j.state === "Dokončeno";
+  }
+
+  if(f === "overrun"){
+    return p.over;
+  }
+
+  return true;
+}
 const holidays = [
   "2026-01-01",
   "2026-04-03",
