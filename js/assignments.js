@@ -396,40 +396,72 @@ function vehicleCrewCount(vehicleId,date){
 
   return workers.size;
 }
-function openAssignment(id){ selectedAssignmentId = id; 
-                            const a = assignmentById(id); if(!a) return; 
-                            const j = jobById(a.jobId); a_job_title.value = j?.title || ""; 
-                            a_date.value = a.date || iso(new Date()); a_load.value = a.load || 10; 
-                            a_vehicle_load.value = a.vehicleLoad || 10; 
-                            a_worker.innerHTML = `<option value="">Bez pracovníka</option>` + db.workers.map(w => ` <option value="${w.id}"> ${esc(w.title)} </option> `).join(""); 
-                            a_worker.value = a.workerId || ""; 
-                           a_vehicle.innerHTML =
-                                db.vehicles.map(v => `
-                                  <option value="${v.id}">
-                                    ${esc(v.title)}
-                                    ${v.spz ? "· " + esc(v.spz) : ""}
-                                  </option>
-                                `).join("");
-                              
-                              const assignedVehicles =
-                                vehiclesForJobDate(
-                                  a.jobId,
-                                  a.date
-                                );
-                              
-                              const selectedVehicleIds =
-                                assignedVehicles.map(x =>
-                                  Number(x.vehicle_id)
-                                );
-                              
-                              Array.from(a_vehicle.options).forEach(opt => {
-                                opt.selected =
-                                  selectedVehicleIds.includes(
-                                    Number(opt.value)
-                                  );
-                              }); 
-                            a_note.value = a.note || ""; document.getElementById( "a_invoiced" ).checked = !!a.invoiced; openModal("assignModal"); }
+function openAssignment(id){
+  selectedAssignmentId = id;
 
+  const a = assignmentById(id);
+  if(!a) return;
+
+  const j = jobById(a.jobId);
+
+  a_job_title.value = j?.title || "";
+  a_date.value = a.date || iso(new Date());
+  a_load.value = a.load || 10;
+  a_vehicle_load.value = a.vehicleLoad || 10;
+
+  a_worker.innerHTML =
+    `<option value="">Bez pracovníka</option>` +
+    db.workers.map(w => `
+      <option value="${w.id}">
+        ${esc(w.title)}
+      </option>
+    `).join("");
+
+  a_worker.value = a.workerId || "";
+
+  a_vehicle.innerHTML =
+    `<option value="">Bez vozidla</option>` +
+    db.vehicles.map(v => `
+      <option value="${v.id}">
+        ${esc(v.title)}
+        ${v.spz ? " · " + esc(v.spz) : ""}
+      </option>
+    `).join("");
+
+  const assignedVehicles =
+    vehiclesForJobDate(
+      a.jobId,
+      a.date
+    );
+
+  let selectedVehicleIds =
+    assignedVehicles.map(x =>
+      Number(x.vehicle_id)
+    );
+
+  if(
+    selectedVehicleIds.length === 0 &&
+    a.vehicleId
+  ){
+    selectedVehicleIds = [
+      Number(a.vehicleId)
+    ];
+  }
+
+  Array.from(a_vehicle.options).forEach(opt => {
+    opt.selected =
+      selectedVehicleIds.includes(
+        Number(opt.value)
+      );
+  });
+
+  a_note.value = a.note || "";
+
+  document.getElementById("a_invoiced").checked =
+    !!a.invoiced;
+
+  openModal("assignModal");
+}
 async function saveAssignmentFromModal(){
   if(!canEdit){
     alert("Nemáte oprávnění k úpravám");
@@ -444,17 +476,26 @@ async function saveAssignmentFromModal(){
   const selectedVehicleIds =
   Array.from(
     a_vehicle.selectedOptions
-  ).map(x => Number(x.value));
+  )
+  .map(x => Number(x.value))
+  .filter(Boolean);
 
-a.vehicleLoad =
+  a.vehicleId = selectedVehicleIds.length
+  ? selectedVehicleIds[0]
+  : null;
+
+  a.vehicleLoad =
   Number(a_vehicle_load.value || 10);
 
+ 
+  
 db.assignments.forEach(x => {
 
   if(
     Number(x.jobId) === Number(a.jobId) &&
     x.date === a.date
   ){
+    x.vehicleId = a.vehicleId;
     x.vehicleLoad = a.vehicleLoad;
   }
 
